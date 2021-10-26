@@ -1,8 +1,9 @@
 module Main exposing (..)
 
-import Array exposing (Array)
+import Array exposing (Array, length)
 import Browser
-import Element exposing (Element, alignLeft, alignRight, alpha, column, el, fill, layout, none, padding, paragraph, row, scrollbarY, text, width)
+import Debug exposing (toString)
+import Element exposing (Element, alignLeft, alignRight, alpha, centerX, centerY, column, el, fill, layout, none, padding, paragraph, row, scrollbarY, text, width)
 import Element.Border
 import Element.Input exposing (button)
 import Html exposing (Html)
@@ -21,6 +22,12 @@ type Question
         }
 
 
+type Page
+    = Intro
+    | Questions
+    | Result
+
+
 type Section
     = Exhaustion
     | Cynicism
@@ -29,6 +36,7 @@ type Section
 type alias Model =
     { questions : Array Question
     , currentQuestion : Int
+    , page : Page
     }
 
 
@@ -36,6 +44,7 @@ type Msg
     = UserClickedOnAnwser Int
     | UserClickedOnBackButton
     | UserClickedOnNextButton
+    | UserClickedOnStartButton
 
 
 periodAnswers : Array Answer
@@ -79,6 +88,7 @@ main =
         { init =
             { questions = initQuestions
             , currentQuestion = 0
+            , page = Intro
             }
         , update = update
         , view = view
@@ -88,6 +98,9 @@ main =
 update : Msg -> Model -> Model
 update msg model =
     case msg of
+        UserClickedOnStartButton ->
+            { model | page = Questions }
+
         UserClickedOnAnwser answerIndex ->
             let
                 maybeQuestion =
@@ -103,10 +116,18 @@ update msg model =
                     model
 
         UserClickedOnBackButton ->
-            { model | currentQuestion = max (model.currentQuestion - 1) 0 }
+            if isFirstQuestion model then
+                { model | page = Intro }
+
+            else
+                { model | currentQuestion = model.currentQuestion - 1 }
 
         UserClickedOnNextButton ->
-            { model | currentQuestion = min (model.currentQuestion + 1) (Array.length model.questions - 1) }
+            if isLastQuestion model then
+                { model | page = Result }
+
+            else
+                { model | currentQuestion = model.currentQuestion + 1 }
 
 
 updateQuestion : Question -> Int -> Question
@@ -114,19 +135,71 @@ updateQuestion (Question question) selectedAnswer =
     Question { question | selectedAnswer = Just selectedAnswer }
 
 
+isFirstQuestion : Model -> Bool
+isFirstQuestion model =
+    model.currentQuestion == 0
+
+
+isLastQuestion : Model -> Bool
+isLastQuestion model =
+    model.currentQuestion == (length model.questions - 1)
+
+
+getCurrentQuestion : Model -> Maybe Question
+getCurrentQuestion model =
+    Array.get model.currentQuestion model.questions
+
+
 view : Model -> Html Msg
 view model =
-    layout
-        []
-    <|
-        row [ width fill ]
-            [ el [ width fill ] none
-            , column [ Element.Border.width 1, width fill, padding 5 ]
-                [ viewQuestion <| getCurrentQuestion model
-                , viewActions model
-                ]
-            , el [ width fill, scrollbarY ] none
+    layout [] <|
+        case model.page of
+            Intro ->
+                viewIntro
+
+            Result ->
+                viewResult model
+
+            Questions ->
+                viewQuestions model
+
+
+viewIntro : Element Msg
+viewIntro =
+    row [ centerX, centerY ]
+        [ button [ alignRight ] { onPress = Just <| UserClickedOnStartButton, label = text "Start" }
+        ]
+
+
+viewResult : Model -> Element msg
+viewResult model =
+    let
+        calculateQuestion (Question { selectedAnswer, answers }) =
+            toFloat (Maybe.withDefault 0 selectedAnswer) / toFloat (length answers - 1)
+
+        calculateAverage total =
+            total / toFloat (length model.questions)
+    in
+    model.questions
+        |> Array.map calculateQuestion
+        |> Array.foldr (+) 0
+        |> calculateAverage
+        |> (*) 100
+        |> toString
+        |> text
+
+
+viewQuestions : Model -> Element Msg
+viewQuestions model =
+    row [ width fill ]
+        [ el [ width fill ] none
+        , column [ Element.Border.width 1, width fill, padding 5 ]
+            [ viewQuestion <| getCurrentQuestion model
+            , viewResult model
+            , viewActions model
             ]
+        , el [ width fill, scrollbarY ] none
+        ]
 
 
 viewQuestion : Maybe Question -> Element.Element Msg
@@ -169,30 +242,17 @@ viewAnswer maybeSelectedAnswer index answer =
             normalButton
 
 
-getCurrentQuestion : Model -> Maybe Question
-getCurrentQuestion model =
-    Array.get model.currentQuestion model.questions
-
-
 viewActions : Model -> Element Msg
 viewActions model =
     row [ width fill ]
-        [ backButton model
+        [ backButton
         , nextButton model
         ]
 
 
-backButton : Model -> Element Msg
-backButton model =
-    let
-        isFirstQuestion =
-            model.currentQuestion == 0
-    in
-    if isFirstQuestion then
-        none
-
-    else
-        button [ alignLeft ] { onPress = Just <| UserClickedOnBackButton, label = text "Back" }
+backButton : Element Msg
+backButton =
+    button [ alignLeft ] { onPress = Just <| UserClickedOnBackButton, label = text "Back" }
 
 
 nextButton : Model -> Element Msg
