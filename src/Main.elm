@@ -3,8 +3,10 @@ module Main exposing (..)
 import Array exposing (Array, length)
 import Browser
 import Debug exposing (toString)
-import Element exposing (Element, alignLeft, alignRight, alpha, centerX, centerY, column, el, fill, layout, none, padding, paragraph, row, scrollbarY, text, width)
-import Element.Border
+import Element exposing (Element, alignLeft, alignRight, centerX, centerY, column, el, fill, layout, mouseOver, moveDown, none, padding, paragraph, rgb255, row, text, width)
+import Element.Background as Background
+import Element.Border as Border
+import Element.Font as Font
 import Element.Input exposing (button)
 import Html exposing (Html)
 
@@ -88,7 +90,7 @@ main =
         { init =
             { questions = initQuestions
             , currentQuestion = 0
-            , page = Intro
+            , page = Questions
             }
         , update = update
         , view = view
@@ -152,7 +154,7 @@ getCurrentQuestion model =
 
 view : Model -> Html Msg
 view model =
-    layout [] <|
+    layout [ Background.color colors.secondary ] <|
         case model.page of
             Intro ->
                 viewIntro
@@ -162,6 +164,26 @@ view model =
 
             Questions ->
                 viewQuestions model
+
+
+colors :
+    { primary : Element.Color
+    , secondary : Element.Color
+    , highlight : Element.Color
+    , helper : Element.Color
+    , other : Element.Color
+    , neutrals : { lightGray : Element.Color }
+    }
+colors =
+    { primary = rgb255 0xFA 0xBC 0x2A
+    , secondary = rgb255 0xF2 0xED 0xEB
+    , highlight = rgb255 0xF0 0x53 0x65
+    , helper = rgb255 0xBD 0x93 0xBD
+    , other = rgb255 0x92 0x5E 0x78
+    , neutrals =
+        { lightGray = rgb255 0xDD 0xDD 0xDD
+        }
+    }
 
 
 viewIntro : Element Msg
@@ -193,12 +215,11 @@ viewQuestions : Model -> Element Msg
 viewQuestions model =
     row [ width fill ]
         [ el [ width fill ] none
-        , column [ Element.Border.width 1, width fill, padding 5 ]
+        , column [ width fill, padding 5 ]
             [ viewQuestion <| getCurrentQuestion model
-            , viewResult model
             , viewActions model
             ]
-        , el [ width fill, scrollbarY ] none
+        , el [ width fill ] none
         ]
 
 
@@ -261,10 +282,47 @@ nextButton model =
         selected =
             getCurrentQuestion model
                 |> Maybe.andThen (\(Question { selectedAnswer }) -> selectedAnswer)
+
+        buttonStyleBase =
+            [ alignRight
+            , padding 10
+            , Border.rounded 6
+            , Background.color colors.highlight
+            , Font.variant Font.smallCaps
+            , Font.color colors.secondary
+            ]
+
+        buttonStyleEnabled =
+            buttonStyleBase
+                ++ [ Border.shadow
+                        { blur = 0.5
+                        , color = colors.other
+                        , offset = ( 2, 2 )
+                        , size = 2
+                        }
+                   , Background.color colors.highlight
+                   , mouseOver
+                        [ moveDown 1.2
+                        , Border.shadow
+                            { blur = 0.5
+                            , color = colors.other
+                            , offset = ( 2, 2 )
+                            , size = 1
+                            }
+                        ]
+                   ]
+
+        buttonStyleDisabled =
+            buttonStyleBase
+                ++ [ Background.color colors.neutrals.lightGray
+                   , Font.variant Font.smallCaps
+                   ]
     in
     case selected of
         Just _ ->
-            button [ alignRight ] { onPress = Just <| UserClickedOnNextButton, label = text "Next" }
+            button buttonStyleEnabled { onPress = Just <| UserClickedOnNextButton, label = text "Next" }
 
         Nothing ->
-            button [ alignRight, alpha 0.6 ] { onPress = Nothing, label = text "Next" }
+            button
+                buttonStyleDisabled
+                { onPress = Nothing, label = text "Next" }
