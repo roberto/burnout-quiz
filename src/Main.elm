@@ -2,7 +2,8 @@ module Main exposing (..)
 
 import Array exposing (Array)
 import Browser
-import Element exposing (Element, centerX, centerY, column, layout, row, text)
+import Element exposing (Element, alignLeft, alignRight, column, el, fill, layout, none, padding, paragraph, row, scrollbarY, text, width)
+import Element.Border
 import Element.Input exposing (button)
 import Html exposing (Html)
 
@@ -32,7 +33,9 @@ type alias Model =
 
 
 type Msg
-    = UserClickedAnwser Int
+    = UserClickedOnAnwser Int
+    | UserClickedOnBackButton
+    | UserClickedOnNextButton
 
 
 periodAnswers : Array Answer
@@ -85,7 +88,7 @@ main =
 update : Msg -> Model -> Model
 update msg model =
     case msg of
-        UserClickedAnwser answerIndex ->
+        UserClickedOnAnwser answerIndex ->
             let
                 maybeQuestion =
                     Array.get model.currentQuestion model.questions
@@ -94,11 +97,16 @@ update msg model =
                 Just question ->
                     { model
                         | questions = Array.set model.currentQuestion (updateQuestion question answerIndex) model.questions
-                        , currentQuestion = min (model.currentQuestion + 1) (Array.length model.questions - 1)
                     }
 
                 Nothing ->
                     model
+
+        UserClickedOnBackButton ->
+            { model | currentQuestion = max (model.currentQuestion - 1) 0 }
+
+        UserClickedOnNextButton ->
+            { model | currentQuestion = min (model.currentQuestion + 1) (Array.length model.questions - 1) }
 
 
 updateQuestion : Question -> Int -> Question
@@ -106,25 +114,59 @@ updateQuestion (Question question) selectedAnswer =
     Question { question | selectedAnswer = Just selectedAnswer }
 
 
+view : Model -> Html Msg
+view model =
+    layout
+        []
+    <|
+        row [ width fill ]
+            [ el [ width fill ] none
+            , column [ Element.Border.width 1, width fill, padding 5 ]
+                [ viewQuestion <| getCurrentQuestion model
+                , viewActions
+                ]
+            , el [ width fill, scrollbarY ] none
+            ]
+
+
 viewQuestion : Maybe Question -> Element.Element Msg
 viewQuestion maybeQuestion =
     case maybeQuestion of
-        Just (Question { content, answers }) ->
+        Just (Question { content, answers, selectedAnswer }) ->
             column []
-                (text content
-                    :: Array.toList (Array.indexedMap viewAnswer answers)
+                (paragraph [] [ text content ]
+                    :: Array.toList (Array.indexedMap (viewAnswer selectedAnswer) answers)
                 )
 
         Nothing ->
             text ""
 
 
-viewAnswer : Int -> Answer -> Element Msg
-viewAnswer index answer =
-    button []
-        { onPress = Just <| UserClickedAnwser index
-        , label = text answer
-        }
+viewAnswer : Maybe Int -> Int -> Answer -> Element Msg
+viewAnswer maybeSelectedAnswer index answer =
+    let
+        normalButton =
+            button []
+                { onPress = Just <| UserClickedOnAnwser index
+                , label = text answer
+                }
+
+        selectedButton =
+            button []
+                { onPress = Just <| UserClickedOnAnwser index
+                , label = text <| answer ++ "   <----"
+                }
+    in
+    case maybeSelectedAnswer of
+        Just selectedAnswer ->
+            if selectedAnswer == index then
+                selectedButton
+
+            else
+                normalButton
+
+        Nothing ->
+            normalButton
 
 
 getCurrentQuestion : Model -> Maybe Question
@@ -132,11 +174,9 @@ getCurrentQuestion model =
     Array.get model.currentQuestion model.questions
 
 
-view : Model -> Html Msg
-view model =
-    layout
-        []
-    <|
-        row [ centerX, centerY ]
-            [ viewQuestion <| getCurrentQuestion model
-            ]
+viewActions : Element Msg
+viewActions =
+    row [ width fill ]
+        [ button [ alignLeft ] { onPress = Just <| UserClickedOnBackButton, label = text "Back" }
+        , button [ alignRight ] { onPress = Just <| UserClickedOnNextButton, label = text "Next" }
+        ]
