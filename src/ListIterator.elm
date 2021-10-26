@@ -1,4 +1,4 @@
-module ListIterator exposing (..)
+module ListIterator exposing (ListIterator, createListIterator, current, hasNext, hasPrevious, next, previous, setCurrent, toArray)
 
 import Array exposing (Array)
 
