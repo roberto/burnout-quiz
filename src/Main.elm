@@ -2,7 +2,6 @@ module Main exposing (..)
 
 import Array exposing (Array, length)
 import Browser
-import Debug exposing (toString)
 import Element exposing (Element, alignLeft, alignRight, centerX, centerY, column, el, fill, focused, height, layout, minimum, mouseOver, moveDown, none, padding, paddingEach, paragraph, px, rgb255, row, spacing, text, textColumn, width)
 import Element.Background as Background
 import Element.Border as Border
@@ -10,6 +9,7 @@ import Element.Font as Font
 import Element.Input exposing (button)
 import Html exposing (Html)
 import Html.Attributes exposing (selected)
+import ListIterator exposing (ListIterator, createListIterator, hasNext)
 import Style exposing (colors)
 
 
@@ -38,8 +38,7 @@ type Section
 
 
 type alias Model =
-    { questions : Array Question
-    , currentQuestion : Int
+    { questions : ListIterator Question
     , page : Page
     }
 
@@ -56,16 +55,17 @@ periodAnswers =
     Array.fromList [ "Never", "A few times a year or less", "Once a month or less", "A few times a month", "Once a week", "A few times a week", "Every day" ]
 
 
-initQuestions : Array Question
+initQuestions : ListIterator Question
 initQuestions =
-    Array.fromList
-        [ Question
+    createListIterator
+        (Question
             { content = "I find it difficult to relax after a day of work."
             , answers = periodAnswers
             , selectedAnswer = Nothing
             , section = Exhaustion
             }
-        , Question
+        )
+        [ Question
             { content = "After a day of work, I feel run-down and drained of physical or emotional energy."
             , answers = periodAnswers
             , selectedAnswer = Nothing
@@ -91,7 +91,6 @@ main =
     Browser.sandbox
         { init =
             { questions = initQuestions
-            , currentQuestion = 0
             , page = Quiz
             }
         , update = update
@@ -107,51 +106,31 @@ update msg model =
 
         UserClickedOnAnwser answerIndex ->
             let
-                maybeQuestion =
-                    Array.get model.currentQuestion model.questions
+                question =
+                    ListIterator.current model.questions
             in
-            case maybeQuestion of
-                Just question ->
-                    { model
-                        | questions = Array.set model.currentQuestion (updateQuestion question answerIndex) model.questions
-                    }
-
-                Nothing ->
-                    model
+            { model
+                | questions = ListIterator.setCurrent (updateQuestion question answerIndex) model.questions
+            }
 
         UserClickedOnBackButton ->
-            if isFirstQuestion model then
+            if ListIterator.hasPrevious model.questions then
+                { model | questions = ListIterator.previous model.questions }
+
+            else
                 { model | page = Intro }
 
-            else
-                { model | currentQuestion = model.currentQuestion - 1 }
-
         UserClickedOnNextButton ->
-            if isLastQuestion model then
-                { model | page = Result }
+            if hasNext model.questions then
+                { model | questions = ListIterator.next model.questions }
 
             else
-                { model | currentQuestion = model.currentQuestion + 1 }
+                { model | page = Result }
 
 
 updateQuestion : Question -> Int -> Question
 updateQuestion (Question question) selectedAnswer =
     Question { question | selectedAnswer = Just selectedAnswer }
-
-
-isFirstQuestion : Model -> Bool
-isFirstQuestion model =
-    model.currentQuestion == 0
-
-
-isLastQuestion : Model -> Bool
-isLastQuestion model =
-    model.currentQuestion == (length model.questions - 1)
-
-
-getCurrentQuestion : Model -> Maybe Question
-getCurrentQuestion model =
-    Array.get model.currentQuestion model.questions
 
 
 view : Model -> Html Msg
@@ -182,14 +161,15 @@ viewResult model =
             toFloat (Maybe.withDefault 0 selectedAnswer) / toFloat (length answers - 1)
 
         calculateAverage total =
-            total / toFloat (length model.questions)
+            total / toFloat (model.questions |> ListIterator.toArray |> length)
     in
     model.questions
+        |> ListIterator.toArray
         |> Array.map calculateQuestion
         |> Array.foldr (+) 0
         |> calculateAverage
         |> (*) 100
-        |> toString
+        |> String.fromFloat
         |> text
 
 
@@ -197,7 +177,7 @@ viewQuiz : Model -> Element Msg
 viewQuiz model =
     let
         currentQuestion =
-            getCurrentQuestion model
+            ListIterator.current model.questions
     in
     row
         [ width fill
@@ -215,23 +195,18 @@ viewQuiz model =
         ]
 
 
-viewQuestion : Maybe Question -> Element Msg
-viewQuestion maybeQuestion =
-    case maybeQuestion of
-        Just (Question { content, answers, selectedAnswer }) ->
-            textColumn [ width fill, spacing 10 ]
-                (paragraph
-                    [ Border.widthEach { bottom = 1, top = 0, left = 0, right = 0 }
-                    , width fill
-                    , padding 12
-                    , Element.height (fill |> minimum 64)
-                    ]
-                    [ text content ]
-                    :: Array.toList (Array.indexedMap (viewAnswer selectedAnswer) answers)
-                )
-
-        Nothing ->
-            text ""
+viewQuestion : Question -> Element Msg
+viewQuestion (Question { content, answers, selectedAnswer }) =
+    textColumn [ width fill, spacing 10 ]
+        (paragraph
+            [ Border.widthEach { bottom = 1, top = 0, left = 0, right = 0 }
+            , width fill
+            , padding 12
+            , Element.height (fill |> minimum 64)
+            ]
+            [ text content ]
+            :: Array.toList (Array.indexedMap (viewAnswer selectedAnswer) answers)
+        )
 
 
 viewAnswer : Maybe Int -> Int -> Answer -> Element Msg
@@ -314,8 +289,8 @@ nextButton : Model -> Element Msg
 nextButton model =
     let
         selected =
-            getCurrentQuestion model
-                |> Maybe.andThen (\(Question { selectedAnswer }) -> selectedAnswer)
+            ListIterator.current model.questions
+                |> (\(Question { selectedAnswer }) -> selectedAnswer)
 
         buttonStyleBase =
             [ padding 10
