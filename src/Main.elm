@@ -3,7 +3,7 @@ module Main exposing (..)
 import Array exposing (Array, length)
 import Browser
 import Debug exposing (toString)
-import Element exposing (Element, alignLeft, alignRight, centerX, centerY, column, el, fill, layout, mouseOver, moveDown, none, padding, paragraph, rgb255, row, text, width)
+import Element exposing (Element, alignLeft, alignRight, centerX, centerY, column, el, fill, layout, mouseOver, moveDown, none, padding, paddingEach, paragraph, rgb255, row, spacing, text, textColumn, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
@@ -194,9 +194,15 @@ viewResult model =
 
 viewQuestions : Model -> Element Msg
 viewQuestions model =
-    row [ width fill ]
+    row
+        [ width fill
+        , paddingEach { top = 30, bottom = 0, left = 0, right = 0 }
+        ]
         [ el [ width fill ] none
-        , column [ width fill, padding 5 ]
+        , column
+            [ width fill
+            , spacing 30
+            ]
             [ viewQuestion <| getCurrentQuestion model
             , viewActions model
             ]
@@ -208,8 +214,13 @@ viewQuestion : Maybe Question -> Element.Element Msg
 viewQuestion maybeQuestion =
     case maybeQuestion of
         Just (Question { content, answers, selectedAnswer }) ->
-            column []
-                (paragraph [] [ text content ]
+            textColumn [ width fill, spacing 10 ]
+                (paragraph
+                    [ Border.widthEach { bottom = 1, top = 0, left = 0, right = 0 }
+                    , width fill
+                    , padding 15
+                    ]
+                    [ text content ]
                     :: Array.toList (Array.indexedMap (viewAnswer selectedAnswer) answers)
                 )
 
