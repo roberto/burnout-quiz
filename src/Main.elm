@@ -3,12 +3,13 @@ module Main exposing (..)
 import Array exposing (Array, length)
 import Browser
 import Debug exposing (toString)
-import Element exposing (Element, alignLeft, alignRight, centerX, centerY, column, el, fill, layout, mouseOver, moveDown, none, padding, paddingEach, paragraph, rgb255, row, spacing, text, textColumn, width)
+import Element exposing (Element, alignLeft, alignRight, centerX, centerY, column, el, fill, focused, height, layout, minimum, mouseOver, moveDown, none, padding, paddingEach, paragraph, px, rgb255, row, spacing, text, textColumn, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input exposing (button)
 import Html exposing (Html)
+import Html.Attributes exposing (selected)
 import Style exposing (colors)
 
 
@@ -27,7 +28,7 @@ type Question
 
 type Page
     = Intro
-    | Questions
+    | Quiz
     | Result
 
 
@@ -91,7 +92,7 @@ main =
         { init =
             { questions = initQuestions
             , currentQuestion = 0
-            , page = Questions
+            , page = Quiz
             }
         , update = update
         , view = view
@@ -102,7 +103,7 @@ update : Msg -> Model -> Model
 update msg model =
     case msg of
         UserClickedOnStartButton ->
-            { model | page = Questions }
+            { model | page = Quiz }
 
         UserClickedOnAnwser answerIndex ->
             let
@@ -163,8 +164,8 @@ view model =
             Result ->
                 viewResult model
 
-            Questions ->
-                viewQuestions model
+            Quiz ->
+                viewQuiz model
 
 
 viewIntro : Element Msg
@@ -192,8 +193,12 @@ viewResult model =
         |> text
 
 
-viewQuestions : Model -> Element Msg
-viewQuestions model =
+viewQuiz : Model -> Element Msg
+viewQuiz model =
+    let
+        currentQuestion =
+            getCurrentQuestion model
+    in
     row
         [ width fill
         , paddingEach { top = 30, bottom = 0, left = 0, right = 0 }
@@ -203,14 +208,14 @@ viewQuestions model =
             [ width fill
             , spacing 30
             ]
-            [ viewQuestion <| getCurrentQuestion model
+            [ viewQuestion currentQuestion
             , viewActions model
             ]
         , el [ width fill ] none
         ]
 
 
-viewQuestion : Maybe Question -> Element.Element Msg
+viewQuestion : Maybe Question -> Element Msg
 viewQuestion maybeQuestion =
     case maybeQuestion of
         Just (Question { content, answers, selectedAnswer }) ->
@@ -218,7 +223,8 @@ viewQuestion maybeQuestion =
                 (paragraph
                     [ Border.widthEach { bottom = 1, top = 0, left = 0, right = 0 }
                     , width fill
-                    , padding 15
+                    , padding 12
+                    , Element.height (fill |> minimum 64)
                     ]
                     [ text content ]
                     :: Array.toList (Array.indexedMap (viewAnswer selectedAnswer) answers)
@@ -231,28 +237,53 @@ viewQuestion maybeQuestion =
 viewAnswer : Maybe Int -> Int -> Answer -> Element Msg
 viewAnswer maybeSelectedAnswer index answer =
     let
-        normalButton =
-            button []
-                { onPress = Just <| UserClickedOnAnwser index
-                , label = text answer
-                }
+        selected =
+            maybeSelectedAnswer
+                |> Maybe.map (\selectedAnswer -> selectedAnswer == index)
+                |> Maybe.withDefault False
 
-        selectedButton =
-            button []
-                { onPress = Just <| UserClickedOnAnwser index
-                , label = text <| answer ++ "   <----"
-                }
+        selectorBackground =
+            Background.color <|
+                if selected then
+                    colors.primary
+
+                else
+                    colors.base
+
+        selector =
+            el
+                [ width <| px 28
+                , height <| px 28
+                , centerY
+                , padding 4
+                , Border.rounded 6
+                , Border.width 2
+                , Border.color colors.primary
+                ]
+            <|
+                el
+                    [ width fill
+                    , height fill
+                    , Border.rounded 4
+                    , selectorBackground
+                    ]
+                    none
+
+        mouseOverStyle =
+            [ Background.color colors.neutrals.lightGray ]
     in
-    case maybeSelectedAnswer of
-        Just selectedAnswer ->
-            if selectedAnswer == index then
-                selectedButton
-
-            else
-                normalButton
-
-        Nothing ->
-            normalButton
+    button []
+        { onPress = Just <| UserClickedOnAnwser index
+        , label =
+            row
+                [ spacing 10
+                , mouseOver mouseOverStyle
+                , focused mouseOverStyle
+                , width fill
+                , Border.rounded 6
+                ]
+                [ selector, text answer ]
+        }
 
 
 viewActions : Model -> Element Msg
@@ -273,7 +304,10 @@ backButton =
             , Font.color colors.semantics.highlight
             ]
     in
-    button buttonStyle { onPress = Just <| UserClickedOnBackButton, label = text "Back" }
+    button buttonStyle
+        { onPress = Just <| UserClickedOnBackButton
+        , label = text "Back"
+        }
 
 
 nextButton : Model -> Element Msg
