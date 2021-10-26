@@ -2,7 +2,7 @@ module Main exposing (..)
 
 import Array exposing (Array)
 import Browser
-import Element exposing (Element, alignLeft, alignRight, column, el, fill, layout, none, padding, paragraph, row, scrollbarY, text, width)
+import Element exposing (Element, alignLeft, alignRight, alpha, column, el, fill, layout, none, padding, paragraph, row, scrollbarY, text, width)
 import Element.Border
 import Element.Input exposing (button)
 import Html exposing (Html)
@@ -123,7 +123,7 @@ view model =
             [ el [ width fill ] none
             , column [ Element.Border.width 1, width fill, padding 5 ]
                 [ viewQuestion <| getCurrentQuestion model
-                , viewActions
+                , viewActions model
                 ]
             , el [ width fill, scrollbarY ] none
             ]
@@ -174,9 +174,37 @@ getCurrentQuestion model =
     Array.get model.currentQuestion model.questions
 
 
-viewActions : Element Msg
-viewActions =
+viewActions : Model -> Element Msg
+viewActions model =
     row [ width fill ]
-        [ button [ alignLeft ] { onPress = Just <| UserClickedOnBackButton, label = text "Back" }
-        , button [ alignRight ] { onPress = Just <| UserClickedOnNextButton, label = text "Next" }
+        [ backButton model
+        , nextButton model
         ]
+
+
+backButton : Model -> Element Msg
+backButton model =
+    let
+        isFirstQuestion =
+            model.currentQuestion == 0
+    in
+    if isFirstQuestion then
+        none
+
+    else
+        button [ alignLeft ] { onPress = Just <| UserClickedOnBackButton, label = text "Back" }
+
+
+nextButton : Model -> Element Msg
+nextButton model =
+    let
+        selected =
+            getCurrentQuestion model
+                |> Maybe.andThen (\(Question { selectedAnswer }) -> selectedAnswer)
+    in
+    case selected of
+        Just _ ->
+            button [ alignRight ] { onPress = Just <| UserClickedOnNextButton, label = text "Next" }
+
+        Nothing ->
+            button [ alignRight, alpha 0.6 ] { onPress = Nothing, label = text "Next" }
