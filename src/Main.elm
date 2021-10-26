@@ -9,6 +9,7 @@ import Element.Border as Border
 import Element.Font as Font
 import Element.Input exposing (button)
 import Html exposing (Html)
+import Style exposing (colors)
 
 
 type alias Answer =
@@ -154,7 +155,7 @@ getCurrentQuestion model =
 
 view : Model -> Html Msg
 view model =
-    layout [ Background.color colors.secondary ] <|
+    layout [ Background.color colors.base ] <|
         case model.page of
             Intro ->
                 viewIntro
@@ -164,26 +165,6 @@ view model =
 
             Questions ->
                 viewQuestions model
-
-
-colors :
-    { primary : Element.Color
-    , secondary : Element.Color
-    , highlight : Element.Color
-    , helper : Element.Color
-    , other : Element.Color
-    , neutrals : { lightGray : Element.Color }
-    }
-colors =
-    { primary = rgb255 0xFA 0xBC 0x2A
-    , secondary = rgb255 0xF2 0xED 0xEB
-    , highlight = rgb255 0xF0 0x53 0x65
-    , helper = rgb255 0xBD 0x93 0xBD
-    , other = rgb255 0x92 0x5E 0x78
-    , neutrals =
-        { lightGray = rgb255 0xDD 0xDD 0xDD
-        }
-    }
 
 
 viewIntro : Element Msg
@@ -273,7 +254,15 @@ viewActions model =
 
 backButton : Element Msg
 backButton =
-    button [ alignLeft ] { onPress = Just <| UserClickedOnBackButton, label = text "Back" }
+    let
+        buttonStyle =
+            [ alignLeft
+            , padding 10
+            , Font.variant Font.smallCaps
+            , Font.color colors.semantics.highlight
+            ]
+    in
+    button buttonStyle { onPress = Just <| UserClickedOnBackButton, label = text "Back" }
 
 
 nextButton : Model -> Element Msg
@@ -284,29 +273,29 @@ nextButton model =
                 |> Maybe.andThen (\(Question { selectedAnswer }) -> selectedAnswer)
 
         buttonStyleBase =
-            [ alignRight
-            , padding 10
-            , Border.rounded 6
-            , Background.color colors.highlight
+            [ padding 10
             , Font.variant Font.smallCaps
-            , Font.color colors.secondary
+            , Border.rounded 6
+            , alignRight
+            , Font.color colors.base
             ]
 
         buttonStyleEnabled =
             buttonStyleBase
-                ++ [ Border.shadow
+                ++ [ Font.color colors.other
+                   , Background.color colors.primary
+                   , Border.shadow
                         { blur = 0.5
                         , color = colors.other
                         , offset = ( 2, 2 )
-                        , size = 2
+                        , size = 1.7
                         }
-                   , Background.color colors.highlight
                    , mouseOver
                         [ moveDown 1.2
                         , Border.shadow
                             { blur = 0.5
                             , color = colors.other
-                            , offset = ( 2, 2 )
+                            , offset = ( 1.5, 1.5 )
                             , size = 1
                             }
                         ]
@@ -316,6 +305,12 @@ nextButton model =
             buttonStyleBase
                 ++ [ Background.color colors.neutrals.lightGray
                    , Font.variant Font.smallCaps
+                   , Border.shadow
+                        { blur = 0.5
+                        , color = rgb255 0xAA 0xAA 0xAA
+                        , offset = ( 2, 2 )
+                        , size = 1.7
+                        }
                    ]
     in
     case selected of
