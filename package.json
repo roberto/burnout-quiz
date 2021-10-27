@@ -1,4 +1,5 @@
 {
+  "name": "burnout-quiz",
   "private": true,
   "devDependencies": {
     "elm-tooling": "^1.6.0"
