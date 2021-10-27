@@ -43,9 +43,6 @@ jobs:
       - name: elm-test
         run: npx --no-install elm-test
 
-      - name: elm-review
-        run: npx --no-install elm-review
-
       - name: elm-format
         run: npx --no-install elm-format --validate src tests
 
