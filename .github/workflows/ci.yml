@@ -26,8 +26,8 @@ jobs:
       - name: Install elm-format
         uses: mpizenberg/elm-tooling-action@v1.2
         with:
-          cache-key: format-node-0
-          cache-restore-key: format--node
+          cache-key: elm-home-${{ hashFiles('elm-tooling.json', 'elm.json') }}
+          cache-restore-key: elm-home
 
       - name: Check formatting
         run: npm run format
