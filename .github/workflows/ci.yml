@@ -1,33 +1,55 @@
-# This is a basic workflow to help you get started with Actions
-
 name: CI
 
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the main branch
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
 jobs:
-  check_formatting:
-    # This job is to check the formatting of files
-    name: Check formatting
+  main:
     runs-on: ubuntu-latest
+
     steps:
-      # Clone the repository
       - uses: actions/checkout@v2
 
-      # Install elm-format
-      - name: Install elm-format
-        uses: mpizenberg/elm-tooling-action@v1.2
+      - uses: actions/setup-node@v2
         with:
-          cache-key: elm-home-${{ hashFiles('elm-tooling.json', 'elm.json') }}
-          cache-restore-key: elm-home
+          node-version: 14.x
 
-      - name: Check formatting
-        run: npm run format
+      - name: Cache node_modules
+        id: cache-node_modules
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: node_modules-${{ hashFiles('package.json', 'package-lock.json') }}
+
+      - name: Cache ~/.elm
+        uses: actions/cache@v2
+        with:
+          path: ~/.elm
+          key: elm-${{ hashFiles('elm.json', 'elm-tooling.json', 'review/elm.json') }}
+          
+      - name: npm ci
+        if: steps.cache-node_modules.outputs.cache-hit != 'true'
+        env:
+          NO_ELM_TOOLING_INSTALL: 1
+        run: npm ci
+
+      - name: elm-tooling install
+        run: npx --no-install elm-tooling install
+
+      - name: elm make
+        run: npx --no-install elm make src/Main.elm --output=/dev/null
+
+      - name: elm-test
+        run: npx --no-install elm-test
+
+      - name: elm-review
+        run: npx --no-install elm-review
+
+      - name: elm-format
+        run: npx --no-install elm-format --validate src tests
+
+      - name: prettier
+        run: npx --no-install prettier --check .
