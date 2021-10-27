@@ -32,8 +32,6 @@ jobs:
           
       - name: npm ci
         if: steps.cache-node_modules.outputs.cache-hit != 'true'
-        env:
-          NO_ELM_TOOLING_INSTALL: 1
         run: npm ci
 
       - name: elm-tooling install
