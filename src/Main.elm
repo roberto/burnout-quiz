@@ -2,6 +2,7 @@ module Main exposing (..)
 
 import Array exposing (Array, length)
 import Browser
+import Calculator
 import Element exposing (Element, alignLeft, alignRight, centerX, centerY, column, el, fill, focused, height, layout, minimum, mouseOver, moveDown, none, padding, paddingEach, paragraph, px, rgb255, row, spacing, text, textColumn, width)
 import Element.Background as Background
 import Element.Border as Border
@@ -151,15 +152,12 @@ viewIntro =
 viewResult : Model -> Element msg
 viewResult model =
     let
-        calculateQuestion { selectedAnswer, answers } =
-            toFloat (Maybe.withDefault 0 selectedAnswer) / toFloat (length answers - 1)
-
         calculateAverage total =
             total / toFloat (model.questions |> ListIterator.toArray |> length)
     in
     model.questions
         |> ListIterator.toArray
-        |> Array.map calculateQuestion
+        |> Array.map Calculator.evaluateQuestion
         |> Array.foldr (+) 0
         |> calculateAverage
         |> (*) 100
