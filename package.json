@@ -2,7 +2,10 @@
   "name": "burnout-quiz",
   "private": true,
   "devDependencies": {
-    "elm-tooling": "^1.6.0"
+    "elm-review": "^2.6.1",
+    "elm-test": "^0.19.1-revision7",
+    "elm-tooling": "^1.6.0",
+    "prettier": "^2.4.1"
   },
   "scripts": {
     "postinstall": "elm-tooling install"
