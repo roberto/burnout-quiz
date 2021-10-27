@@ -17,13 +17,12 @@ type alias Answer =
     String
 
 
-type Question
-    = Question
-        { content : String
-        , answers : Array Answer
-        , selectedAnswer : Maybe Int
-        , section : Section
-        }
+type alias Question =
+    { content : String
+    , answers : Array Answer
+    , selectedAnswer : Maybe Int
+    , section : Section
+    }
 
 
 type Page
@@ -58,31 +57,26 @@ periodAnswers =
 initQuestions : ListIterator Question
 initQuestions =
     createListIterator
-        (Question
-            { content = "I find it difficult to relax after a day of work."
-            , answers = periodAnswers
-            , selectedAnswer = Nothing
-            , section = Exhaustion
-            }
-        )
-        [ Question
-            { content = "After a day of work, I feel run-down and drained of physical or emotional energy."
-            , answers = periodAnswers
-            , selectedAnswer = Nothing
-            , section = Exhaustion
-            }
-        , Question
-            { content = "I feel less and less connected and engaged with the work I do."
-            , answers = periodAnswers
-            , selectedAnswer = Nothing
-            , section = Cynicism
-            }
-        , Question
-            { content = "I do not have a clear idea of the value and purpose of my job."
-            , answers = periodAnswers
-            , selectedAnswer = Nothing
-            , section = Cynicism
-            }
+        { content = "I find it difficult to relax after a day of work."
+        , answers = periodAnswers
+        , selectedAnswer = Nothing
+        , section = Exhaustion
+        }
+        [ { content = "After a day of work, I feel run-down and drained of physical or emotional energy."
+          , answers = periodAnswers
+          , selectedAnswer = Nothing
+          , section = Exhaustion
+          }
+        , { content = "I feel less and less connected and engaged with the work I do."
+          , answers = periodAnswers
+          , selectedAnswer = Nothing
+          , section = Cynicism
+          }
+        , { content = "I do not have a clear idea of the value and purpose of my job."
+          , answers = periodAnswers
+          , selectedAnswer = Nothing
+          , section = Cynicism
+          }
         ]
 
 
@@ -129,8 +123,8 @@ update msg model =
 
 
 updateQuestion : Question -> Int -> Question
-updateQuestion (Question question) selectedAnswer =
-    Question { question | selectedAnswer = Just selectedAnswer }
+updateQuestion question selectedAnswer =
+    { question | selectedAnswer = Just selectedAnswer }
 
 
 view : Model -> Html Msg
@@ -157,7 +151,7 @@ viewIntro =
 viewResult : Model -> Element msg
 viewResult model =
     let
-        calculateQuestion (Question { selectedAnswer, answers }) =
+        calculateQuestion { selectedAnswer, answers } =
             toFloat (Maybe.withDefault 0 selectedAnswer) / toFloat (length answers - 1)
 
         calculateAverage total =
@@ -196,7 +190,7 @@ viewQuiz model =
 
 
 viewQuestion : Question -> Element Msg
-viewQuestion (Question { content, answers, selectedAnswer }) =
+viewQuestion { content, answers, selectedAnswer } =
     textColumn [ width fill, spacing 10 ]
         (paragraph
             [ Border.widthEach { bottom = 1, top = 0, left = 0, right = 0 }
@@ -289,8 +283,9 @@ nextButton : Model -> Element Msg
 nextButton model =
     let
         selected =
-            ListIterator.current model.questions
-                |> (\(Question { selectedAnswer }) -> selectedAnswer)
+            model.questions
+                |> ListIterator.current
+                |> .selectedAnswer
 
         buttonStyleBase =
             [ padding 10
