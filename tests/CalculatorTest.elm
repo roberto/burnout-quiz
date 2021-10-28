@@ -5,8 +5,11 @@ import Calculator
 import Expect
 import Fuzz exposing (int, list, maybe)
 import Random
+import Random.Array
+import Random.Char
+import Random.Extra
+import Random.String
 import Shrink
-import String exposing (fromInt)
 import Test exposing (..)
 
 
@@ -16,9 +19,9 @@ suite =
         fuzzyQuestion =
             Fuzz.custom
                 (Random.map2
-                    (\selectedAnswer answersSize -> { selectedAnswer = Just selectedAnswer, answers = Array.initialize answersSize fromInt })
-                    (Random.int -5 5)
-                    (Random.int 0 10)
+                    (\selectedAnswer answersRandom -> { selectedAnswer = selectedAnswer, answers = answersRandom })
+                    (Random.Extra.maybe Random.Extra.bool <| Random.int -50 100)
+                    (Random.int 0 10 |> Random.andThen (\len -> Random.Array.array len (Random.String.string 3 Random.Char.english)))
                 )
                 Shrink.noShrink
 
