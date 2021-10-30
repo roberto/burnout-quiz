@@ -177,5 +177,33 @@ suite =
                                 :: expectListContent checkEvaluation expectedResult
                                 ++ expectListContent checkSection expectedResult
                             )
+            , let
+                checkValues index results =
+                    case Array.get index (Array.fromList results) of
+                        Just result ->
+                            result
+                                |> Tuple.second
+                                |> Expect.all
+                                    [ Expect.atLeast 0
+                                    , Expect.atMost 1
+                                    ]
+
+                        Nothing ->
+                            Expect.fail "error"
+              in
+              fuzz (list fuzzyQuestion) "it always returns Float between 0 and 1 as evaluations" <|
+                \fuzzyQuestions ->
+                    let
+                        results =
+                            fuzzyQuestions
+                                |> Calculator.evaluateQuestionsBySection
+                    in
+                    if List.isEmpty results && List.isEmpty fuzzyQuestions then
+                        Expect.pass
+
+                    else
+                        results
+                            |> Expect.all
+                                (List.map checkValues <| List.range 0 (List.length results - 1))
             ]
         ]
