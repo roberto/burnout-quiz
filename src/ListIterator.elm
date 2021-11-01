@@ -1,4 +1,4 @@
-module ListIterator exposing (ListIterator, createListIterator, current, hasNext, hasPrevious, next, previous, setCurrent, toArray)
+module ListIterator exposing (ListIterator, createListIterator, current, hasNext, hasPrevious, next, previous, setCurrent, toArray, toList)
 
 import Array exposing (Array)
 
@@ -61,3 +61,8 @@ setCurrent element (ListIterator list index fallback) =
 toArray : ListIterator a -> Array a
 toArray (ListIterator list _ _) =
     list
+
+
+toList : ListIterator a -> List a
+toList (ListIterator list _ _) =
+    Array.toList list

@@ -1,16 +1,17 @@
 module Main exposing (..)
 
-import Array exposing (Array, length)
+import Array exposing (Array)
 import Browser
 import Calculator
-import Element exposing (Element, alignLeft, alignRight, centerX, centerY, column, el, fill, focused, height, layout, minimum, mouseOver, moveDown, none, padding, paddingEach, paragraph, px, rgb255, row, spacing, text, textColumn, width)
+import Element exposing (Element, alignLeft, alignRight, centerX, centerY, column, el, fill, focused, height, layout, minimum, mouseOver, moveDown, none, padding, paddingEach, paragraph, px, rgb255, row, shrink, spacing, text, textColumn, width)
 import Element.Background as Background
 import Element.Border as Border
-import Element.Font as Font
+import Element.Font as Font exposing (bold)
 import Element.Input exposing (button)
 import Html exposing (Html)
 import Html.Attributes exposing (selected)
 import ListIterator exposing (ListIterator, createListIterator, hasNext)
+import String exposing (fromFloat, fromInt)
 import Style exposing (colors)
 
 
@@ -35,6 +36,8 @@ type Page
 type Section
     = Exhaustion
     | Cynicism
+    | SelfInefficacy
+    | Depersonalization
 
 
 type alias Model =
@@ -50,8 +53,8 @@ type Msg
     | UserClickedOnStartButton
 
 
-periodAnswers : Array Answer
-periodAnswers =
+commonAnswers : Array Answer
+commonAnswers =
     Array.fromList [ "Never", "A few times a year or less", "Once a month or less", "A few times a month", "Once a week", "A few times a week", "Every day" ]
 
 
@@ -59,26 +62,31 @@ initQuestions : ListIterator Question
 initQuestions =
     createListIterator
         { content = "I find it difficult to relax after a day of work."
-        , answers = periodAnswers
+        , answers = commonAnswers
         , selectedAnswer = Nothing
         , section = Exhaustion
         }
         [ { content = "After a day of work, I feel run-down and drained of physical or emotional energy."
-          , answers = periodAnswers
+          , answers = commonAnswers
           , selectedAnswer = Nothing
           , section = Exhaustion
           }
         , { content = "I feel less and less connected and engaged with the work I do."
-          , answers = periodAnswers
+          , answers = commonAnswers
           , selectedAnswer = Nothing
           , section = Cynicism
           }
         , { content = "I do not have a clear idea of the value and purpose of my job."
-          , answers = periodAnswers
+          , answers = commonAnswers
           , selectedAnswer = Nothing
           , section = Cynicism
           }
         ]
+
+
+maxResult : number
+maxResult =
+    100
 
 
 main : Program () Model Msg
@@ -86,7 +94,7 @@ main =
     Browser.sandbox
         { init =
             { questions = initQuestions
-            , page = Quiz
+            , page = Intro
             }
         , update = update
         , view = view
@@ -145,24 +153,98 @@ view model =
 viewIntro : Element Msg
 viewIntro =
     row [ centerX, centerY ]
-        [ button [ alignRight ] { onPress = Just <| UserClickedOnStartButton, label = text "Start" }
+        [ button [ alignRight ]
+            { onPress = Just <| UserClickedOnStartButton
+            , label = text "Start"
+            }
         ]
 
 
 viewResult : Model -> Element msg
 viewResult model =
-    let
-        calculateAverage total =
-            total / toFloat (model.questions |> ListIterator.toArray |> length)
-    in
+    row
+        [ width fill
+        , paddingEach { top = 30, bottom = 0, left = 0, right = 0 }
+        ]
+        [ el [ width fill ] none
+        , column
+            [ width fill
+            , spacing 30
+            ]
+            [ row
+                [ Border.rounded 100
+                , Background.color colors.primary
+                , padding 30
+                , width shrink
+                , alignRight
+                ]
+                [ viewTotalResult model
+                , text <| " of " ++ fromInt maxResult
+                ]
+            , viewSectionResults model
+            ]
+        , el [ width fill ] none
+        ]
+
+
+viewTotalResult : Model -> Element msg
+viewTotalResult model =
     model.questions
-        |> ListIterator.toArray
-        |> Array.map Calculator.evaluateQuestion
-        |> Array.foldr (+) 0
-        |> calculateAverage
-        |> (*) 100
+        |> ListIterator.toList
+        |> Calculator.evaluateQuestions
+        |> (*) maxResult
         |> String.fromFloat
         |> text
+        |> el
+            [ bold
+            , Font.size 50
+            ]
+
+
+viewSectionResults : Model -> Element msg
+viewSectionResults model =
+    let
+        sectionToSlider ( section, evaluation ) =
+            [ row
+                [ width fill
+                , Background.gradient
+                    { angle = 1
+                    , steps =
+                        List.repeat (10 - round (evaluation * 10)) colors.primary
+                            ++ List.repeat (round (evaluation * 10)) colors.semantics.highlight
+                    }
+                , Border.rounded 6
+                , padding 8
+                ]
+                [ text <|
+                    sectionToString section
+                , el [ alignRight ] (text (evaluation * maxResult |> fromFloat))
+                ]
+            ]
+
+        sections =
+            model.questions
+                |> ListIterator.toList
+                |> Calculator.evaluateQuestionsBySection
+                |> List.concatMap sectionToSlider
+    in
+    column [ width fill, spacing 20 ] sections
+
+
+sectionToString : Section -> String
+sectionToString section =
+    case section of
+        Exhaustion ->
+            "Exhaustion"
+
+        Depersonalization ->
+            "Depersonalization"
+
+        Cynicism ->
+            "Cynicism"
+
+        SelfInefficacy ->
+            "Self Inefficacy"
 
 
 viewQuiz : Model -> Element Msg
