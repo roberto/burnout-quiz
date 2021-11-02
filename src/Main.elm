@@ -8,10 +8,12 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font exposing (bold)
 import Element.Input exposing (button)
+import FormatNumber exposing (format)
+import FormatNumber.Locales exposing (Decimals(..), System(..), usLocale)
 import Html exposing (Html)
 import Html.Attributes exposing (selected)
 import ListIterator exposing (ListIterator, createListIterator, hasNext)
-import String exposing (fromFloat, fromInt)
+import String exposing (fromInt)
 import Style exposing (colors)
 
 
@@ -122,7 +124,7 @@ main =
     Browser.sandbox
         { init =
             { questions = initQuestions
-            , page = Result
+            , page = Intro
             }
         , update = update
         , view = view
@@ -233,7 +235,7 @@ viewTotalResult model =
     in
     total
         |> (*) maxResult
-        |> String.fromFloat
+        |> formatEvaluation
         |> text
         |> el
             [ bold
@@ -253,7 +255,7 @@ viewSectionResults model =
                 ]
                 [ text <|
                     sectionToString section
-                , el [ alignRight ] (text (evaluation * maxResult |> fromFloat))
+                , el [ alignRight ] (text (evaluation * maxResult |> formatEvaluation))
                 ]
             ]
 
@@ -264,6 +266,11 @@ viewSectionResults model =
                 |> List.concatMap sectionToSlider
     in
     column [ width fill, spacing 20 ] sections
+
+
+formatEvaluation : Float -> String
+formatEvaluation =
+    format { usLocale | decimals = Max 1 }
 
 
 backgroundGradient : Float -> Element.Attr decorative msg
