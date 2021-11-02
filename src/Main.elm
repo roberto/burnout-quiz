@@ -55,7 +55,15 @@ type Msg
 
 commonAnswers : Array Answer
 commonAnswers =
-    Array.fromList [ "Never", "A few times a year or less", "Once a month or less", "A few times a month", "Once a week", "A few times a week", "Every day" ]
+    Array.fromList
+        [ "Never"
+        , "A few times a year or less"
+        , "Once a month or less"
+        , "A few times a month"
+        , "Once a week"
+        , "A few times a week"
+        , "Every day"
+        ]
 
 
 initQuestions : ListIterator Question
@@ -81,12 +89,32 @@ initQuestions =
           , selectedAnswer = Nothing
           , section = Cynicism
           }
+        , { content = "I am harder and less sympathetic with people than perhaps they deserve."
+          , answers = commonAnswers
+          , selectedAnswer = Nothing
+          , section = Depersonalization
+          }
+        , { content = "I am worried this job is making me harsher emotionally."
+          , answers = commonAnswers
+          , selectedAnswer = Nothing
+          , section = Depersonalization
+          }
+        , { content = "I feel that I am achieving less than I should."
+          , answers = commonAnswers
+          , selectedAnswer = Nothing
+          , section = SelfInefficacy
+          }
+        , { content = "In my opinion, I’m inefficient in my job."
+          , answers = commonAnswers
+          , selectedAnswer = Nothing
+          , section = SelfInefficacy
+          }
         ]
 
 
 maxResult : number
 maxResult =
-    100
+    6
 
 
 main : Program () Model Msg
@@ -94,7 +122,7 @@ main =
     Browser.sandbox
         { init =
             { questions = initQuestions
-            , page = Intro
+            , page = Result
             }
         , update = update
         , view = view
@@ -113,7 +141,9 @@ update msg model =
                     ListIterator.current model.questions
             in
             { model
-                | questions = ListIterator.setCurrent (updateQuestion question answerIndex) model.questions
+                | questions =
+                    model.questions
+                        |> ListIterator.setCurrent (updateQuestion question answerIndex)
             }
 
         UserClickedOnBackButton ->
@@ -162,6 +192,12 @@ viewIntro =
 
 viewResult : Model -> Element msg
 viewResult model =
+    let
+        total =
+            model.questions
+                |> ListIterator.toList
+                |> Calculator.evaluateQuestions
+    in
     row
         [ width fill
         , paddingEach { top = 30, bottom = 0, left = 0, right = 0 }
@@ -173,10 +209,10 @@ viewResult model =
             ]
             [ row
                 [ Border.rounded 100
-                , Background.color colors.primary
+                , backgroundGradient total
                 , padding 30
                 , width shrink
-                , alignRight
+                , centerX
                 ]
                 [ viewTotalResult model
                 , text <| " of " ++ fromInt maxResult
@@ -189,9 +225,13 @@ viewResult model =
 
 viewTotalResult : Model -> Element msg
 viewTotalResult model =
-    model.questions
-        |> ListIterator.toList
-        |> Calculator.evaluateQuestions
+    let
+        total =
+            model.questions
+                |> ListIterator.toList
+                |> Calculator.evaluateQuestions
+    in
+    total
         |> (*) maxResult
         |> String.fromFloat
         |> text
@@ -207,12 +247,7 @@ viewSectionResults model =
         sectionToSlider ( section, evaluation ) =
             [ row
                 [ width fill
-                , Background.gradient
-                    { angle = 1
-                    , steps =
-                        List.repeat (10 - round (evaluation * 10)) colors.primary
-                            ++ List.repeat (round (evaluation * 10)) colors.semantics.highlight
-                    }
+                , backgroundGradient evaluation
                 , Border.rounded 6
                 , padding 8
                 ]
@@ -229,6 +264,16 @@ viewSectionResults model =
                 |> List.concatMap sectionToSlider
     in
     column [ width fill, spacing 20 ] sections
+
+
+backgroundGradient : Float -> Element.Attr decorative msg
+backgroundGradient evaluation =
+    Background.gradient
+        { angle = pi / 2
+        , steps =
+            List.repeat (10 - round (evaluation * 10)) colors.primary
+                ++ List.repeat (round (evaluation * 10)) colors.semantics.highlight
+        }
 
 
 sectionToString : Section -> String
@@ -407,10 +452,20 @@ nextButton model =
                         , size = 1.7
                         }
                    ]
+
+        label =
+            if ListIterator.hasNext model.questions then
+                "Next"
+
+            else
+                "Finish"
     in
     case selected of
         Just _ ->
-            button buttonStyleEnabled { onPress = Just <| UserClickedOnNextButton, label = text "Next" }
+            button buttonStyleEnabled
+                { onPress = Just <| UserClickedOnNextButton
+                , label = text label
+                }
 
         Nothing ->
             button
