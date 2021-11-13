@@ -50,12 +50,16 @@ setCurrent element (ListIterator list index fallback) =
     let
         newArray =
             Array.set index element list
-    in
-    if index == 0 then
-        ListIterator newArray index element
 
-    else
-        ListIterator newArray index fallback
+        newFallback =
+            case index of
+                0 ->
+                    element
+
+                _ ->
+                    fallback
+    in
+    ListIterator newArray index newFallback
 
 
 toArray : ListIterator a -> Array a

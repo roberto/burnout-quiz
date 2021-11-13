@@ -5,10 +5,7 @@ import Calculator
 import Expect
 import Fuzz exposing (int, list, maybe)
 import Random
-import Random.Array
-import Random.Char
 import Random.Extra
-import Random.String
 import Shrink
 import String exposing (fromInt)
 import Test exposing (..)
@@ -49,46 +46,42 @@ suite =
     let
         fuzzyQuestion =
             Fuzz.custom
-                (Random.map3
-                    (\selectedAnswer answersRandom section -> { selectedAnswer = selectedAnswer, answers = answersRandom, section = section })
+                (Random.map2
+                    (\selectedAnswer section -> { selectedAnswer = selectedAnswer, section = section })
                     (Random.Extra.maybe Random.Extra.bool <| Random.int -50 100)
-                    (Random.int 0 10 |> Random.andThen (\len -> Random.Array.array len (Random.String.string 3 Random.Char.english)))
                     (Random.uniform A [ B, C ])
                 )
                 Shrink.noShrink
 
-        answers =
-            Array.fromList [ "a", "b", "c", "d" ]
-
         questionMaxValue =
-            { selectedAnswer = Just 3, answers = answers, section = A }
+            { selectedAnswer = Just 6, section = A }
 
         questionZeroValue =
-            { selectedAnswer = Just 0, answers = answers, section = A }
+            { selectedAnswer = Just 0, section = A }
 
         questionOtherValue =
-            { selectedAnswer = Just 2, answers = answers, section = A }
+            { selectedAnswer = Just 2, section = A }
     in
     describe "Calculator"
         [ describe "evaluateQuestion"
             [ test "first answer has the minimum value, zero" <|
                 \_ ->
-                    { selectedAnswer = Just 0, answers = answers }
+                    { selectedAnswer = Just 0 }
                         |> Calculator.evaluateQuestion
                         |> Expect.within (Expect.Absolute 0.001) 0
             , test "second answer has one third" <|
                 \_ ->
-                    { selectedAnswer = Just 1, answers = answers }
+                    { selectedAnswer = Just 1 }
+                        |> Calculator.evaluateQuestion
+                        |> Expect.within (Expect.Absolute 0.001) 0.166
+            , test "third answer has one third" <|
+                \_ ->
+                    { selectedAnswer = Just 2 }
                         |> Calculator.evaluateQuestion
                         |> Expect.within (Expect.Absolute 0.001) 0.333
-            , test "third answer has two thirds" <|
-                \_ ->
-                    { selectedAnswer = Just 2, answers = answers }
-                        |> Calculator.evaluateQuestion
-                        |> Expect.within (Expect.Absolute 0.001) 0.666
             , test "last answer has the maximum value, one" <|
                 \_ ->
-                    { selectedAnswer = Just 3, answers = answers }
+                    { selectedAnswer = Just 6 }
                         |> Calculator.evaluateQuestion
                         |> Expect.within (Expect.Absolute 0.001) 1
             , fuzz2 fuzzyQuestion (maybe int) "always return a Float between 0 and 1" <|
@@ -116,11 +109,11 @@ suite =
                     [ questionZeroValue, questionMaxValue ]
                         |> Calculator.evaluateQuestions
                         |> Expect.within (Expect.Absolute 0.001) 0.5
-            , test "for 0, 0.666 and 1, returns 0.888" <|
+            , test "for 0, 0.333 and 1, returns 0.888" <|
                 \_ ->
-                    [ questionMaxValue, questionMaxValue, questionOtherValue ]
+                    [ questionZeroValue, questionMaxValue, questionOtherValue ]
                         |> Calculator.evaluateQuestions
-                        |> Expect.within (Expect.Absolute 0.001) 0.888
+                        |> Expect.within (Expect.Absolute 0.001) 0.444
             , fuzz (list fuzzyQuestion) "it always returns a Float between 0 and 1" <|
                 \fuzzyQuestions ->
                     fuzzyQuestions
@@ -138,11 +131,11 @@ suite =
                 Expect.equal expected returned
           in
           describe "evaluateQuestionsBySection"
-            [ test "for just one question, it returns its section and evaluation" <|
+            [ test "for one question, it returns its section and evaluation" <|
                 \_ ->
                     let
                         expectedResult =
-                            [ ( A, 0.666 ) ]
+                            [ ( A, 0.333 ) ]
                     in
                     [ questionOtherValue ]
                         |> Calculator.evaluateQuestionsBySection
@@ -151,11 +144,11 @@ suite =
                                 :: expectListContent checkEvaluation expectedResult
                                 ++ expectListContent checkSection expectedResult
                             )
-            , test "for just two questions from different sections, it returns their sections with evaluations" <|
+            , test "for two questions from different sections, it returns their sections with evaluations" <|
                 \_ ->
                     let
                         expectedResult =
-                            [ ( B, 1 ), ( A, 0.666 ) ]
+                            [ ( B, 1 ), ( A, 0.333 ) ]
                     in
                     [ questionOtherValue, { questionMaxValue | section = B } ]
                         |> Calculator.evaluateQuestionsBySection
@@ -164,11 +157,11 @@ suite =
                                 :: expectListContent checkEvaluation expectedResult
                                 ++ expectListContent checkSection expectedResult
                             )
-            , test "for just three questions from different sections, it returns their evaluations grouped by section" <|
+            , test "for three questions from different sections, it returns their evaluations grouped by section" <|
                 \_ ->
                     let
                         expectedResult =
-                            [ ( B, 0.5 ), ( A, 0.666 ) ]
+                            [ ( B, 0.5 ), ( A, 0.333 ) ]
                     in
                     [ questionOtherValue, { questionMaxValue | section = B }, { questionZeroValue | section = B } ]
                         |> Calculator.evaluateQuestionsBySection

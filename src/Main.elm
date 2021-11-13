@@ -23,7 +23,6 @@ type alias Answer =
 
 type alias Question =
     { content : String
-    , answers : Array Answer
     , selectedAnswer : Maybe Int
     , section : Section
     }
@@ -72,42 +71,34 @@ initQuestions : ListIterator Question
 initQuestions =
     createListIterator
         { content = "I find it difficult to relax after a day of work."
-        , answers = commonAnswers
         , selectedAnswer = Nothing
         , section = Exhaustion
         }
         [ { content = "After a day of work, I feel run-down and drained of physical or emotional energy."
-          , answers = commonAnswers
           , selectedAnswer = Nothing
           , section = Exhaustion
           }
         , { content = "I feel less and less connected and engaged with the work I do."
-          , answers = commonAnswers
           , selectedAnswer = Nothing
           , section = Cynicism
           }
         , { content = "I do not have a clear idea of the value and purpose of my job."
-          , answers = commonAnswers
           , selectedAnswer = Nothing
           , section = Cynicism
           }
         , { content = "I am harder and less sympathetic with people than perhaps they deserve."
-          , answers = commonAnswers
           , selectedAnswer = Nothing
           , section = Depersonalization
           }
         , { content = "I am worried this job is making me harsher emotionally."
-          , answers = commonAnswers
           , selectedAnswer = Nothing
           , section = Depersonalization
           }
         , { content = "I feel that I am achieving less than I should."
-          , answers = commonAnswers
           , selectedAnswer = Nothing
           , section = SelfInefficacy
           }
         , { content = "In my opinion, I’m inefficient in my job."
-          , answers = commonAnswers
           , selectedAnswer = Nothing
           , section = SelfInefficacy
           }
@@ -185,7 +176,7 @@ view model =
 viewIntro : Element Msg
 viewIntro =
     row [ centerX, centerY ]
-        [ button [ alignRight ]
+        [ button []
             { onPress = Just <| UserClickedOnStartButton
             , label = text "Start"
             }
@@ -322,7 +313,7 @@ viewQuiz model =
 
 
 viewQuestion : Question -> Element Msg
-viewQuestion { content, answers, selectedAnswer } =
+viewQuestion { content, selectedAnswer } =
     textColumn [ width fill, spacing 10 ]
         (paragraph
             [ Border.widthEach { bottom = 1, top = 0, left = 0, right = 0 }
@@ -331,7 +322,7 @@ viewQuestion { content, answers, selectedAnswer } =
             , Element.height (fill |> minimum 64)
             ]
             [ text content ]
-            :: Array.toList (Array.indexedMap (viewAnswer selectedAnswer) answers)
+            :: Array.toList (Array.indexedMap (viewAnswer selectedAnswer) commonAnswers)
         )
 
 

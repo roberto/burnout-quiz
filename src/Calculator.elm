@@ -1,7 +1,11 @@
 module Calculator exposing (..)
 
-import Array exposing (Array)
 import AssocList
+
+
+answersMaxValue : number
+answersMaxValue =
+    6
 
 
 safeAverage : Float -> Int -> Float
@@ -17,24 +21,19 @@ safeAverage value total =
         result
 
 
-evaluateQuestion : { q | selectedAnswer : Maybe Int, answers : Array a } -> Float
-evaluateQuestion { selectedAnswer, answers } =
+evaluateQuestion : { q | selectedAnswer : Maybe Int } -> Float
+evaluateQuestion { selectedAnswer } =
     let
-        answersMax =
-            answers
-                |> Array.length
-                |> (\v -> v - 1)
-
         answer =
             selectedAnswer
                 |> Maybe.withDefault 0
-                |> clamp 0 answersMax
+                |> clamp 0 answersMaxValue
                 |> toFloat
     in
-    safeAverage answer answersMax
+    safeAverage answer answersMaxValue
 
 
-evaluateQuestions : List { q | selectedAnswer : Maybe Int, answers : Array a } -> Float
+evaluateQuestions : List { q | selectedAnswer : Maybe Int } -> Float
 evaluateQuestions questions =
     let
         questionsSum =
@@ -45,7 +44,7 @@ evaluateQuestions questions =
     safeAverage questionsSum <| List.length questions
 
 
-evaluateQuestionsBySection : List { q | selectedAnswer : Maybe Int, answers : Array a, section : b } -> List ( b, Float )
+evaluateQuestionsBySection : List { q | selectedAnswer : Maybe Int, section : b } -> List ( b, Float )
 evaluateQuestionsBySection questions =
     let
         upsert dict key value =
@@ -55,9 +54,7 @@ evaluateQuestionsBySection questions =
     in
     questions
         |> List.foldl
-            (\q d ->
-                upsert d q.section q
-            )
+            (\question dict -> upsert dict question.section question)
             AssocList.empty
-        |> AssocList.map (\_ l -> evaluateQuestions l)
+        |> AssocList.map (\_ -> evaluateQuestions)
         |> AssocList.toList
