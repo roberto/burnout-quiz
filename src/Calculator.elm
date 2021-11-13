@@ -1,4 +1,4 @@
-module Calculator exposing (..)
+module Calculator exposing (evaluateQuestion, evaluateQuestions, evaluateQuestionsBySection)
 
 import AssocList
 
@@ -6,6 +6,11 @@ import AssocList
 answersMaxValue : number
 answersMaxValue =
     6
+
+
+answerMultiplier : Float
+answerMultiplier =
+    1 / answersMaxValue
 
 
 safeAverage : Float -> Int -> Float
@@ -23,14 +28,11 @@ safeAverage value total =
 
 evaluateQuestion : { q | selectedAnswer : Maybe Int } -> Float
 evaluateQuestion { selectedAnswer } =
-    let
-        answer =
-            selectedAnswer
-                |> Maybe.withDefault 0
-                |> clamp 0 answersMaxValue
-                |> toFloat
-    in
-    safeAverage answer answersMaxValue
+    selectedAnswer
+        |> Maybe.withDefault 0
+        |> clamp 0 answersMaxValue
+        |> toFloat
+        |> (*) answerMultiplier
 
 
 evaluateQuestions : List { q | selectedAnswer : Maybe Int } -> Float
