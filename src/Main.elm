@@ -187,7 +187,7 @@ viewResult model =
                 |> Calculator.evaluateQuestions
 
         maxResult =
-            Array.length commonAnswers + 1
+            Array.length commonAnswers - 1
     in
     row
         [ width fill
