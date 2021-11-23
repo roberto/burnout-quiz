@@ -45,3 +45,14 @@ jobs:
 
       - name: elm-format
         run: npx --no-install elm-format --validate src tests
+
+      - name: Build
+        if: github.ref == 'refs/heads/main'
+        run: npm run build
+
+      - name: Deploy
+        if: github.ref == 'refs/heads/main'
+        uses: JamesIves/github-pages-deploy-action@4.1.6
+        with:
+          branch: gh-pages
+          folder: build
