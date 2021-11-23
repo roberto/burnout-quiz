@@ -3,7 +3,7 @@ module CalculatorTest exposing (..)
 import Array
 import Calculator
 import Expect
-import Fuzz exposing (int, list, maybe)
+import Fuzz exposing (list)
 import Random
 import Random.Extra
 import Shrink
@@ -48,7 +48,7 @@ suite =
             Fuzz.custom
                 (Random.map2
                     (\selectedAnswer section -> { selectedAnswer = selectedAnswer, section = section })
-                    (Random.Extra.maybe Random.Extra.bool <| Random.int -50 100)
+                    (Random.Extra.maybe Random.Extra.bool <| Random.int 0 6)
                     (Random.uniform A [ B, C ])
                 )
                 Shrink.noShrink
@@ -63,64 +63,34 @@ suite =
             { selectedAnswer = Just 2, section = A }
     in
     describe "Calculator"
-        [ describe "evaluateQuestion"
-            [ test "first answer has the minimum value, zero" <|
-                \_ ->
-                    { selectedAnswer = Just 0 }
-                        |> Calculator.evaluateQuestion
-                        |> Expect.within (Expect.Absolute 0.001) 0
-            , test "second answer has one third" <|
-                \_ ->
-                    { selectedAnswer = Just 1 }
-                        |> Calculator.evaluateQuestion
-                        |> Expect.within (Expect.Absolute 0.001) 0.166
-            , test "third answer has one third" <|
-                \_ ->
-                    { selectedAnswer = Just 2 }
-                        |> Calculator.evaluateQuestion
-                        |> Expect.within (Expect.Absolute 0.001) 0.333
-            , test "last answer has the maximum value, one" <|
-                \_ ->
-                    { selectedAnswer = Just 6 }
-                        |> Calculator.evaluateQuestion
-                        |> Expect.within (Expect.Absolute 0.001) 1
-            , fuzz2 fuzzyQuestion (maybe int) "always return a Float between 0 and 1" <|
-                \question fuzzyAnswer ->
-                    { question | selectedAnswer = fuzzyAnswer }
-                        |> Calculator.evaluateQuestion
-                        |> Expect.all
-                            [ Expect.atLeast 0
-                            , Expect.atMost 1
-                            ]
-            ]
-        , describe "evaluateQuestions"
+        [ describe "evaluateQuestions"
             [ test "for just one with max value, returns max value" <|
                 \_ ->
                     [ questionMaxValue ]
                         |> Calculator.evaluateQuestions
-                        |> Expect.within (Expect.Absolute 0.001) 1
+                        |> Expect.within (Expect.Absolute 0.001) 6
             , test "for just one with value zero, returns zero" <|
                 \_ ->
                     [ questionZeroValue ]
                         |> Calculator.evaluateQuestions
                         |> Expect.within (Expect.Absolute 0.001) 0
-            , test "for one with max and other with zero, it returns 0.5" <|
+            , test "for one with max and other with zero, it returns 3" <|
                 \_ ->
                     [ questionZeroValue, questionMaxValue ]
                         |> Calculator.evaluateQuestions
-                        |> Expect.within (Expect.Absolute 0.001) 0.5
+                        |> Expect.within (Expect.Absolute 0.001) 3
             , test "for 0, 0.333 and 1, returns 0.888" <|
                 \_ ->
                     [ questionZeroValue, questionMaxValue, questionOtherValue ]
                         |> Calculator.evaluateQuestions
-                        |> Expect.within (Expect.Absolute 0.001) 0.444
+                        |> Expect.within (Expect.Absolute 0.001) 2.667
             , fuzz (list fuzzyQuestion) "it always returns a Float between 0 and 1" <|
                 \fuzzyQuestions ->
                     fuzzyQuestions
                         |> Calculator.evaluateQuestions
                         |> Expect.all
                             [ Expect.atLeast 0
-                            , Expect.atMost 1
+                            , Expect.atMost 6
                             ]
             ]
         , let
@@ -135,7 +105,7 @@ suite =
                 \_ ->
                     let
                         expectedResult =
-                            [ ( A, 0.333 ) ]
+                            [ ( A, 2 ) ]
                     in
                     [ questionOtherValue ]
                         |> Calculator.evaluateQuestionsBySection
@@ -148,7 +118,7 @@ suite =
                 \_ ->
                     let
                         expectedResult =
-                            [ ( B, 1 ), ( A, 0.333 ) ]
+                            [ ( B, 6 ), ( A, 2 ) ]
                     in
                     [ questionOtherValue, { questionMaxValue | section = B } ]
                         |> Calculator.evaluateQuestionsBySection
@@ -161,7 +131,7 @@ suite =
                 \_ ->
                     let
                         expectedResult =
-                            [ ( B, 0.5 ), ( A, 0.333 ) ]
+                            [ ( B, 3 ), ( A, 2 ) ]
                     in
                     [ questionOtherValue, { questionMaxValue | section = B }, { questionZeroValue | section = B } ]
                         |> Calculator.evaluateQuestionsBySection
@@ -178,13 +148,13 @@ suite =
                                 |> Tuple.second
                                 |> Expect.all
                                     [ Expect.atLeast 0
-                                    , Expect.atMost 1
+                                    , Expect.atMost 6
                                     ]
 
                         Nothing ->
                             Expect.fail "error"
               in
-              fuzz (list fuzzyQuestion) "it always returns Float between 0 and 1 as evaluations" <|
+              fuzz (list fuzzyQuestion) "it always returns Float between 0 and 6 as evaluations" <|
                 \fuzzyQuestions ->
                     let
                         results =

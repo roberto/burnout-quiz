@@ -105,11 +105,6 @@ initQuestions =
         ]
 
 
-maxResult : number
-maxResult =
-    6
-
-
 main : Program () Model Msg
 main =
     Browser.sandbox
@@ -177,7 +172,7 @@ viewIntro : Element Msg
 viewIntro =
     row [ centerX, centerY ]
         [ button []
-            { onPress = Just <| UserClickedOnStartButton
+            { onPress = Just UserClickedOnStartButton
             , label = text "Start"
             }
         ]
@@ -190,6 +185,9 @@ viewResult model =
             model.questions
                 |> ListIterator.toList
                 |> Calculator.evaluateQuestions
+
+        maxResult =
+            Array.length commonAnswers + 1
     in
     row
         [ width fill
@@ -225,7 +223,6 @@ viewTotalResult model =
                 |> Calculator.evaluateQuestions
     in
     total
-        |> (*) maxResult
         |> formatEvaluation
         |> text
         |> el
@@ -246,7 +243,7 @@ viewSectionResults model =
                 ]
                 [ text <|
                     sectionToString section
-                , el [ alignRight ] (text (evaluation * maxResult |> formatEvaluation))
+                , el [ alignRight ] (text <| formatEvaluation evaluation)
                 ]
             ]
 
@@ -269,8 +266,8 @@ backgroundGradient evaluation =
     Background.gradient
         { angle = pi / 2
         , steps =
-            List.repeat (10 - round (evaluation * 10)) colors.primary
-                ++ List.repeat (round (evaluation * 10)) colors.semantics.highlight
+            List.repeat (12 - round (evaluation * 2)) colors.primary
+                ++ List.repeat (round (evaluation * 2)) colors.semantics.highlight
         }
 
 

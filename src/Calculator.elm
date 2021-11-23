@@ -1,23 +1,13 @@
-module Calculator exposing (evaluateQuestion, evaluateQuestions, evaluateQuestionsBySection)
+module Calculator exposing (evaluateQuestions, evaluateQuestionsBySection)
 
 import AssocList
 
 
-answersMaxValue : number
-answersMaxValue =
-    6
-
-
-answerMultiplier : Float
-answerMultiplier =
-    1 / answersMaxValue
-
-
-safeAverage : Float -> Int -> Float
+safeAverage : Int -> Int -> Float
 safeAverage value total =
     let
         result =
-            value / toFloat total
+            toFloat value / toFloat total
     in
     if isNaN result then
         0
@@ -26,24 +16,22 @@ safeAverage value total =
         result
 
 
-evaluateQuestion : { q | selectedAnswer : Maybe Int } -> Float
-evaluateQuestion { selectedAnswer } =
-    selectedAnswer
-        |> Maybe.withDefault 0
-        |> clamp 0 answersMaxValue
-        |> toFloat
-        |> (*) answerMultiplier
-
-
 evaluateQuestions : List { q | selectedAnswer : Maybe Int } -> Float
 evaluateQuestions questions =
     let
+        evaluateQuestion =
+            .selectedAnswer
+                >> Maybe.withDefault 0
+
         questionsSum =
             questions
                 |> List.map evaluateQuestion
                 |> List.sum
+
+        questionsLength =
+            List.length questions
     in
-    safeAverage questionsSum <| List.length questions
+    safeAverage questionsSum questionsLength
 
 
 evaluateQuestionsBySection : List { q | selectedAnswer : Maybe Int, section : b } -> List ( b, Float )
