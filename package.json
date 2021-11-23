@@ -10,7 +10,7 @@
   },
   "scripts": {
     "start": "parcel public/index.html",
-    "build": "parcel build public/index.html --dist-dir build",
+    "build": "parcel build public/index.html --dist-dir build --public-url /burnout-quiz/",
     "test": "elm-test",
     "postinstall": "elm-tooling install"
   }
