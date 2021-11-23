@@ -2,10 +2,16 @@
   "name": "burnout-quiz",
   "private": true,
   "devDependencies": {
+    "@parcel/transformer-elm": "^2.0.1",
+    "elm": "^0.19.1-5",
     "elm-test": "^0.19.1-revision7",
-    "elm-tooling": "^1.6.0"
+    "elm-tooling": "^1.6.0",
+    "parcel": "^2.0.1"
   },
   "scripts": {
+    "start": "parcel public/index.html",
+    "build": "parcel build public/index.html --dist-dir build",
+    "test": "elm-test",
     "postinstall": "elm-tooling install"
   }
 }

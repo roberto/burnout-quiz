@@ -1,2 +1,7 @@
 elm-stuff/
 node_modules/
+
+# parcel stuff
+.parcel-cache/
+build/
+dist/
