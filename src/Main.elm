@@ -67,6 +67,13 @@ commonAnswers =
         ]
 
 
+init : Model
+init =
+    { questions = initQuestions
+    , page = Intro
+    }
+
+
 initQuestions : ListIterator Question
 initQuestions =
     createListIterator
@@ -108,10 +115,7 @@ initQuestions =
 main : Program () Model Msg
 main =
     Browser.sandbox
-        { init =
-            { questions = initQuestions
-            , page = Intro
-            }
+        { init = init
         , update = update
         , view = view
         }
@@ -458,11 +462,11 @@ nextButton model =
     case selected of
         Just _ ->
             button buttonStyleEnabled
-                { onPress = Just <| UserClickedOnNextButton
+                { onPress = Just UserClickedOnNextButton
                 , label = text label
                 }
 
         Nothing ->
             button
                 buttonStyleDisabled
-                { onPress = Nothing, label = text "Next" }
+                { onPress = Nothing, label = text label }
