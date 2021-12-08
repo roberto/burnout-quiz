@@ -165,7 +165,7 @@ viewIntro =
     row [ centerX, centerY ]
         [ button []
             { onPress = Just UserClickedOnStartButton
-            , label = text "Start"
+            , label = text Text.buttonStart
             }
         ]
 
@@ -386,8 +386,8 @@ backButton =
             ]
     in
     button buttonStyle
-        { onPress = Just <| UserClickedOnBackButton
-        , label = text "Back"
+        { onPress = Just UserClickedOnBackButton
+        , label = text Text.buttonBack
         }
 
 
@@ -442,10 +442,10 @@ nextButton model =
 
         label =
             if ListIterator.hasNext model.questions then
-                "Next"
+                Text.buttonNext
 
             else
-                "Finish"
+                Text.buttonFinish
     in
     case selected of
         Just _ ->

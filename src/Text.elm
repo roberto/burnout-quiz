@@ -1,4 +1,4 @@
-module Text exposing (answers)
+module Text exposing (answers, buttonBack, buttonFinish, buttonNext, buttonStart)
 
 import Array exposing (Array)
 
@@ -14,3 +14,23 @@ answers =
         , "A few times a week"
         , "Every day"
         ]
+
+
+buttonStart : String
+buttonStart =
+    "Start"
+
+
+buttonFinish : String
+buttonFinish =
+    "Finish"
+
+
+buttonNext : String
+buttonNext =
+    "Next"
+
+
+buttonBack : String
+buttonBack =
+    "Back"
