@@ -1,6 +1,6 @@
 module Main exposing (..)
 
-import Array exposing (Array)
+import Array
 import Browser
 import Calculator
 import Element exposing (Element, alignLeft, alignRight, centerX, centerY, column, el, fill, focused, height, layout, minimum, mouseOver, moveDown, none, padding, paddingEach, paragraph, px, rgb255, row, shrink, spacing, text, textColumn, width)
@@ -15,6 +15,7 @@ import Html.Attributes exposing (selected)
 import ListIterator exposing (ListIterator, createListIterator, hasNext)
 import String exposing (fromInt)
 import Style exposing (colors)
+import Text
 
 
 type alias Answer =
@@ -52,19 +53,6 @@ type Msg
     | UserClickedOnBackButton
     | UserClickedOnNextButton
     | UserClickedOnStartButton
-
-
-commonAnswers : Array Answer
-commonAnswers =
-    Array.fromList
-        [ "Never"
-        , "A few times a year or less"
-        , "Once a month or less"
-        , "A few times a month"
-        , "Once a week"
-        , "A few times a week"
-        , "Every day"
-        ]
 
 
 init : Model
@@ -191,7 +179,7 @@ viewResult model =
                 |> Calculator.evaluateQuestions
 
         maxResult =
-            Array.length commonAnswers - 1
+            Array.length Text.answers - 1
     in
     row
         [ width fill
@@ -323,7 +311,7 @@ viewQuestion { content, selectedAnswer } =
             , Element.height (fill |> minimum 64)
             ]
             [ text content ]
-            :: Array.toList (Array.indexedMap (viewAnswer selectedAnswer) commonAnswers)
+            :: Array.toList (Array.indexedMap (viewAnswer selectedAnswer) Text.answers)
         )
 
 
