@@ -1,6 +1,7 @@
-module Text exposing (answers, buttonBack, buttonFinish, buttonNext, buttonStart, questions)
+module Text exposing (answers, buttonBack, buttonFinish, buttonNext, buttonStart, questions, sectionToString)
 
 import Array exposing (Array)
+import Section exposing (Section(..))
 
 
 answers : Array String
@@ -60,3 +61,19 @@ questions =
         , second = "I do not have a clear idea of the value and purpose of my job."
         }
     }
+
+
+sectionToString : Section -> String
+sectionToString section =
+    case section of
+        Exhaustion ->
+            "Exhaustion"
+
+        Depersonalization ->
+            "Depersonalization"
+
+        Cynicism ->
+            "Cynicism"
+
+        SelfInefficacy ->
+            "Self Inefficacy"

@@ -13,6 +13,7 @@ import FormatNumber.Locales exposing (Decimals(..), System(..), usLocale)
 import Html exposing (Html)
 import Html.Attributes exposing (selected)
 import ListIterator exposing (ListIterator, createListIterator, hasNext)
+import Section exposing (Section)
 import String exposing (fromInt)
 import Style exposing (colors)
 import Text
@@ -33,13 +34,6 @@ type Page
     = Intro
     | Quiz
     | Result
-
-
-type Section
-    = Exhaustion
-    | Cynicism
-    | SelfInefficacy
-    | Depersonalization
 
 
 type alias Model =
@@ -67,35 +61,35 @@ initQuestions =
     createListIterator
         { content = Text.questions.exhaustion.first
         , selectedAnswer = Nothing
-        , section = Exhaustion
+        , section = Section.Exhaustion
         }
         [ { content = Text.questions.exhaustion.second
           , selectedAnswer = Nothing
-          , section = Exhaustion
+          , section = Section.Exhaustion
           }
         , { content = Text.questions.cynicism.first
           , selectedAnswer = Nothing
-          , section = Cynicism
+          , section = Section.Cynicism
           }
         , { content = Text.questions.cynicism.second
           , selectedAnswer = Nothing
-          , section = Cynicism
+          , section = Section.Cynicism
           }
         , { content = Text.questions.depersonalization.first
           , selectedAnswer = Nothing
-          , section = Depersonalization
+          , section = Section.Depersonalization
           }
         , { content = Text.questions.depersonalization.second
           , selectedAnswer = Nothing
-          , section = Depersonalization
+          , section = Section.Depersonalization
           }
         , { content = Text.questions.selfInefficacy.first
           , selectedAnswer = Nothing
-          , section = SelfInefficacy
+          , section = Section.SelfInefficacy
           }
         , { content = Text.questions.selfInefficacy.second
           , selectedAnswer = Nothing
-          , section = SelfInefficacy
+          , section = Section.SelfInefficacy
           }
         ]
 
@@ -234,7 +228,7 @@ viewSectionResults model =
                 , padding 8
                 ]
                 [ text <|
-                    sectionToString section
+                    Text.sectionToString section
                 , el [ alignRight ] (text <| formatEvaluation evaluation)
                 ]
             ]
@@ -261,22 +255,6 @@ backgroundGradient evaluation =
             List.repeat (12 - round (evaluation * 2)) colors.primary
                 ++ List.repeat (round (evaluation * 2)) colors.semantics.highlight
         }
-
-
-sectionToString : Section -> String
-sectionToString section =
-    case section of
-        Exhaustion ->
-            "Exhaustion"
-
-        Depersonalization ->
-            "Depersonalization"
-
-        Cynicism ->
-            "Cynicism"
-
-        SelfInefficacy ->
-            "Self Inefficacy"
 
 
 viewQuiz : Model -> Element Msg
