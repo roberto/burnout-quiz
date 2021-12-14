@@ -13,7 +13,7 @@ import Html.Attributes exposing (selected)
 import ListIterator exposing (ListIterator, createListIterator, hasNext)
 import Section exposing (Section)
 import Style exposing (colors)
-import Text
+import Text exposing (t)
 
 
 type alias Answer =
@@ -56,35 +56,35 @@ init =
 initQuestions : ListIterator Question
 initQuestions =
     createListIterator
-        { content = Text.questions.exhaustion.first
+        { content = t.questions.exhaustion.first
         , selectedAnswer = Nothing
         , section = Section.Exhaustion
         }
-        [ { content = Text.questions.exhaustion.second
+        [ { content = t.questions.exhaustion.second
           , selectedAnswer = Nothing
           , section = Section.Exhaustion
           }
-        , { content = Text.questions.cynicism.first
+        , { content = t.questions.cynicism.first
           , selectedAnswer = Nothing
           , section = Section.Cynicism
           }
-        , { content = Text.questions.cynicism.second
+        , { content = t.questions.cynicism.second
           , selectedAnswer = Nothing
           , section = Section.Cynicism
           }
-        , { content = Text.questions.depersonalization.first
+        , { content = t.questions.depersonalization.first
           , selectedAnswer = Nothing
           , section = Section.Depersonalization
           }
-        , { content = Text.questions.depersonalization.second
+        , { content = t.questions.depersonalization.second
           , selectedAnswer = Nothing
           , section = Section.Depersonalization
           }
-        , { content = Text.questions.selfInefficacy.first
+        , { content = t.questions.selfInefficacy.first
           , selectedAnswer = Nothing
           , section = Section.SelfInefficacy
           }
-        , { content = Text.questions.selfInefficacy.second
+        , { content = t.questions.selfInefficacy.second
           , selectedAnswer = Nothing
           , section = Section.SelfInefficacy
           }
@@ -156,7 +156,7 @@ viewIntro =
     row [ centerX, centerY ]
         [ button []
             { onPress = Just UserClickedOnStartButton
-            , label = text Text.buttons.start
+            , label = text t.buttons.start
             }
         ]
 
@@ -170,7 +170,7 @@ viewResult model =
                 |> Calculator.evaluateQuestions
 
         maxResult =
-            Array.length Text.answers - 1
+            Array.length t.answers - 1
     in
     row
         [ width fill
@@ -189,7 +189,7 @@ viewResult model =
                 , centerX
                 ]
                 [ viewTotalResult model
-                , text <| Text.formatMaxResult maxResult
+                , text <| t.formatMaxResult maxResult
                 ]
             , viewSectionResults model
             ]
@@ -206,7 +206,7 @@ viewTotalResult model =
                 |> Calculator.evaluateQuestions
     in
     total
-        |> Text.formatEvaluation
+        |> t.formatEvaluation
         |> text
         |> el
             [ bold
@@ -225,8 +225,8 @@ viewSectionResults model =
                 , padding 8
                 ]
                 [ text <|
-                    Text.sectionToString section
-                , el [ alignRight ] (text <| Text.formatEvaluation evaluation)
+                    t.section section
+                , el [ alignRight ] (text <| t.formatEvaluation evaluation)
                 ]
             ]
 
@@ -281,7 +281,7 @@ viewQuestion { content, selectedAnswer } =
             , Element.height (fill |> minimum 64)
             ]
             [ text content ]
-            :: Array.toList (Array.indexedMap (viewAnswer selectedAnswer) Text.answers)
+            :: Array.toList (Array.indexedMap (viewAnswer selectedAnswer) t.answers)
         )
 
 
@@ -357,7 +357,7 @@ backButton =
     in
     button buttonStyle
         { onPress = Just UserClickedOnBackButton
-        , label = text Text.buttons.back
+        , label = text t.buttons.back
         }
 
 
@@ -412,10 +412,10 @@ nextButton model =
 
         label =
             if ListIterator.hasNext model.questions then
-                Text.buttons.next
+                t.buttons.next
 
             else
-                Text.buttons.finish
+                t.buttons.finish
     in
     case selected of
         Just _ ->

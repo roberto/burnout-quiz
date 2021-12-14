@@ -1,4 +1,4 @@
-module Text exposing (answers, buttons, formatEvaluation, formatMaxResult, questions, sectionToString)
+module Text exposing (t)
 
 import Array exposing (Array)
 import FormatNumber exposing (format)
@@ -20,12 +20,15 @@ answers =
         ]
 
 
-buttons :
+type alias ButtonsText =
     { start : String
     , next : String
     , back : String
     , finish : String
     }
+
+
+buttons : ButtonsText
 buttons =
     { start = "Start"
     , next = "Next"
@@ -34,12 +37,15 @@ buttons =
     }
 
 
-questions :
+type alias QuestionsText =
     { depersonalization : { first : String, second : String }
     , selfInefficacy : { first : String, second : String }
     , exhaustion : { first : String, second : String }
     , cynicism : { first : String, second : String }
     }
+
+
+questions : QuestionsText
 questions =
     { depersonalization =
         { first = "I am harder and less sympathetic with people than perhaps they deserve."
@@ -60,9 +66,9 @@ questions =
     }
 
 
-sectionToString : Section -> String
-sectionToString section =
-    case section of
+section : Section -> String
+section sec =
+    case sec of
         Exhaustion ->
             "Exhaustion"
 
@@ -84,3 +90,24 @@ formatMaxResult max =
 formatEvaluation : Float -> String
 formatEvaluation =
     format { usLocale | decimals = Max 1 }
+
+
+type alias Text =
+    { buttons : ButtonsText
+    , questions : QuestionsText
+    , answers : Array String
+    , formatMaxResult : Int -> String
+    , formatEvaluation : Float -> String
+    , section : Section -> String
+    }
+
+
+t : Text
+t =
+    { buttons = buttons
+    , questions = questions
+    , answers = answers
+    , formatMaxResult = formatMaxResult
+    , formatEvaluation = formatEvaluation
+    , section = section
+    }
