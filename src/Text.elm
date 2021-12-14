@@ -1,4 +1,4 @@
-module Text exposing (answers, buttonBack, buttonFinish, buttonNext, buttonStart, formatEvaluation, formatMaxResult, questions, sectionToString)
+module Text exposing (answers, buttons, formatEvaluation, formatMaxResult, questions, sectionToString)
 
 import Array exposing (Array)
 import FormatNumber exposing (format)
@@ -20,24 +20,18 @@ answers =
         ]
 
 
-buttonStart : String
-buttonStart =
-    "Start"
-
-
-buttonFinish : String
-buttonFinish =
-    "Finish"
-
-
-buttonNext : String
-buttonNext =
-    "Next"
-
-
-buttonBack : String
-buttonBack =
-    "Back"
+buttons :
+    { start : String
+    , next : String
+    , back : String
+    , finish : String
+    }
+buttons =
+    { start = "Start"
+    , next = "Next"
+    , back = "Back"
+    , finish = "Finish"
+    }
 
 
 questions :
