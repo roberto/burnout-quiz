@@ -8,13 +8,10 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font exposing (bold)
 import Element.Input exposing (button)
-import FormatNumber exposing (format)
-import FormatNumber.Locales exposing (Decimals(..), System(..), usLocale)
 import Html exposing (Html)
 import Html.Attributes exposing (selected)
 import ListIterator exposing (ListIterator, createListIterator, hasNext)
 import Section exposing (Section)
-import String exposing (fromInt)
 import Style exposing (colors)
 import Text
 
@@ -192,7 +189,7 @@ viewResult model =
                 , centerX
                 ]
                 [ viewTotalResult model
-                , text <| " of " ++ fromInt maxResult
+                , text <| Text.formatMaxResult maxResult
                 ]
             , viewSectionResults model
             ]
@@ -209,7 +206,7 @@ viewTotalResult model =
                 |> Calculator.evaluateQuestions
     in
     total
-        |> formatEvaluation
+        |> Text.formatEvaluation
         |> text
         |> el
             [ bold
@@ -229,7 +226,7 @@ viewSectionResults model =
                 ]
                 [ text <|
                     Text.sectionToString section
-                , el [ alignRight ] (text <| formatEvaluation evaluation)
+                , el [ alignRight ] (text <| Text.formatEvaluation evaluation)
                 ]
             ]
 
@@ -240,11 +237,6 @@ viewSectionResults model =
                 |> List.concatMap sectionToSlider
     in
     column [ width fill, spacing 20 ] sections
-
-
-formatEvaluation : Float -> String
-formatEvaluation =
-    format { usLocale | decimals = Max 1 }
 
 
 backgroundGradient : Float -> Element.Attr decorative msg

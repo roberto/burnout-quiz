@@ -1,7 +1,10 @@
-module Text exposing (answers, buttonBack, buttonFinish, buttonNext, buttonStart, questions, sectionToString)
+module Text exposing (answers, buttonBack, buttonFinish, buttonNext, buttonStart, formatEvaluation, formatMaxResult, questions, sectionToString)
 
 import Array exposing (Array)
+import FormatNumber exposing (format)
+import FormatNumber.Locales exposing (Decimals(..), System(..), usLocale)
 import Section exposing (Section(..))
+import String exposing (fromInt)
 
 
 answers : Array String
@@ -77,3 +80,13 @@ sectionToString section =
 
         SelfInefficacy ->
             "Self Inefficacy"
+
+
+formatMaxResult : Int -> String
+formatMaxResult max =
+    " of " ++ fromInt max
+
+
+formatEvaluation : Float -> String
+formatEvaluation =
+    format { usLocale | decimals = Max 1 }
