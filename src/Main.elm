@@ -65,35 +65,35 @@ init =
 initQuestions : ListIterator Question
 initQuestions =
     createListIterator
-        { content = "I find it difficult to relax after a day of work."
+        { content = Text.questions.exhaustion.first
         , selectedAnswer = Nothing
         , section = Exhaustion
         }
-        [ { content = "After a day of work, I feel run-down and drained of physical or emotional energy."
+        [ { content = Text.questions.exhaustion.second
           , selectedAnswer = Nothing
           , section = Exhaustion
           }
-        , { content = "I feel less and less connected and engaged with the work I do."
+        , { content = Text.questions.cynicism.first
           , selectedAnswer = Nothing
           , section = Cynicism
           }
-        , { content = "I do not have a clear idea of the value and purpose of my job."
+        , { content = Text.questions.cynicism.second
           , selectedAnswer = Nothing
           , section = Cynicism
           }
-        , { content = "I am harder and less sympathetic with people than perhaps they deserve."
+        , { content = Text.questions.depersonalization.first
           , selectedAnswer = Nothing
           , section = Depersonalization
           }
-        , { content = "I am worried this job is making me harsher emotionally."
+        , { content = Text.questions.depersonalization.second
           , selectedAnswer = Nothing
           , section = Depersonalization
           }
-        , { content = "I feel that I am achieving less than I should."
+        , { content = Text.questions.selfInefficacy.first
           , selectedAnswer = Nothing
           , section = SelfInefficacy
           }
-        , { content = "In my opinion, I’m inefficient in my job."
+        , { content = Text.questions.selfInefficacy.second
           , selectedAnswer = Nothing
           , section = SelfInefficacy
           }
