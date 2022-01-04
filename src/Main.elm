@@ -10,10 +10,10 @@ import Element.Font as Font exposing (bold)
 import Element.Input exposing (button)
 import Html exposing (Html)
 import Html.Attributes exposing (selected)
+import I18n.English exposing (t)
 import ListIterator exposing (ListIterator, createListIterator, hasNext)
 import Section exposing (Section)
 import Style exposing (colors)
-import Text exposing (t)
 
 
 type alias Answer =

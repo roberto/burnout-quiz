@@ -1,13 +1,14 @@
-module Text exposing (t)
+module I18n.English exposing (..)
 
-import Array exposing (Array)
+import Array
 import FormatNumber exposing (format)
 import FormatNumber.Locales exposing (Decimals(..), System(..), usLocale)
+import I18n.Base
 import Section exposing (Section(..))
 import String exposing (fromInt)
 
 
-answers : Array String
+answers : I18n.Base.Answers
 answers =
     Array.fromList
         [ "Never"
@@ -20,15 +21,7 @@ answers =
         ]
 
 
-type alias ButtonsText =
-    { start : String
-    , next : String
-    , back : String
-    , finish : String
-    }
-
-
-buttons : ButtonsText
+buttons : I18n.Base.ButtonsText
 buttons =
     { start = "Start"
     , next = "Next"
@@ -37,15 +30,7 @@ buttons =
     }
 
 
-type alias QuestionsText =
-    { depersonalization : { first : String, second : String }
-    , selfInefficacy : { first : String, second : String }
-    , exhaustion : { first : String, second : String }
-    , cynicism : { first : String, second : String }
-    }
-
-
-questions : QuestionsText
+questions : I18n.Base.QuestionsText
 questions =
     { depersonalization =
         { first = "I am harder and less sympathetic with people than perhaps they deserve."
@@ -66,7 +51,7 @@ questions =
     }
 
 
-section : Section -> String
+section : I18n.Base.SectionToString
 section sec =
     case sec of
         Exhaustion ->
@@ -82,27 +67,17 @@ section sec =
             "Self Inefficacy"
 
 
-formatMaxResult : Int -> String
+formatMaxResult : I18n.Base.FormatMaxResult
 formatMaxResult max =
     " of " ++ fromInt max
 
 
-formatEvaluation : Float -> String
+formatEvaluation : I18n.Base.FormatEvaluation
 formatEvaluation =
     format { usLocale | decimals = Max 1 }
 
 
-type alias Text =
-    { buttons : ButtonsText
-    , questions : QuestionsText
-    , answers : Array String
-    , formatMaxResult : Int -> String
-    , formatEvaluation : Float -> String
-    , section : Section -> String
-    }
-
-
-t : Text
+t : I18n.Base.Text
 t =
     { buttons = buttons
     , questions = questions
