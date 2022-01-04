@@ -3,12 +3,12 @@ module I18n.Portuguese exposing (..)
 import Array
 import FormatNumber exposing (format)
 import FormatNumber.Locales exposing (Decimals(..), System(..), spanishLocale)
-import I18n.Base
+import I18n.Types
 import Section exposing (Section(..))
 import String exposing (fromInt)
 
 
-answers : I18n.Base.Answers
+answers : I18n.Types.Answers
 answers =
     Array.fromList
         [ "Nunca"
@@ -21,7 +21,7 @@ answers =
         ]
 
 
-buttons : I18n.Base.ButtonsText
+buttons : I18n.Types.ButtonsText
 buttons =
     { start = "Iniciar"
     , next = "Avançar"
@@ -30,7 +30,7 @@ buttons =
     }
 
 
-questions : I18n.Base.QuestionsText
+questions : I18n.Types.QuestionsText
 questions =
     { depersonalization =
         { first = "Estou mais duro e menos simpático com outras pessoas do que elas merecem."
@@ -51,7 +51,7 @@ questions =
     }
 
 
-section : I18n.Base.SectionToString
+section : I18n.Types.SectionToString
 section sec =
     case sec of
         Exhaustion ->
@@ -67,17 +67,17 @@ section sec =
             "Auto Ineficácia"
 
 
-formatMaxResult : I18n.Base.FormatMaxResult
+formatMaxResult : I18n.Types.FormatMaxResult
 formatMaxResult max =
     " de " ++ fromInt max
 
 
-formatEvaluation : I18n.Base.FormatEvaluation
+formatEvaluation : I18n.Types.FormatEvaluation
 formatEvaluation =
     format { spanishLocale | decimals = Max 1 }
 
 
-t : I18n.Base.Text
+t : I18n.Types.Text
 t =
     { buttons = buttons
     , questions = questions

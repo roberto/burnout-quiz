@@ -10,7 +10,9 @@ import Element.Font as Font exposing (bold)
 import Element.Input exposing (button)
 import Html exposing (Html)
 import Html.Attributes exposing (selected)
+import I18n.Base exposing (Language)
 import I18n.English exposing (t)
+import I18n.Types exposing (Text)
 import ListIterator exposing (ListIterator, createListIterator, hasNext)
 import Section exposing (Section)
 import Style exposing (colors)
@@ -21,7 +23,7 @@ type alias Answer =
 
 
 type alias Question =
-    { content : String
+    { content : Text -> String
     , selectedAnswer : Maybe Int
     , section : Section
     }
@@ -36,6 +38,7 @@ type Page
 type alias Model =
     { questions : ListIterator Question
     , page : Page
+    , i18n : Text
     }
 
 
@@ -44,47 +47,49 @@ type Msg
     | UserClickedOnBackButton
     | UserClickedOnNextButton
     | UserClickedOnStartButton
+    | UserClickedOnSetLanguage Language
 
 
 init : Model
 init =
     { questions = initQuestions
     , page = Intro
+    , i18n = I18n.English.t
     }
 
 
 initQuestions : ListIterator Question
 initQuestions =
     createListIterator
-        { content = t.questions.exhaustion.first
+        { content = \t -> t.questions.exhaustion.first
         , selectedAnswer = Nothing
         , section = Section.Exhaustion
         }
-        [ { content = t.questions.exhaustion.second
+        [ { content = \t -> t.questions.exhaustion.second
           , selectedAnswer = Nothing
           , section = Section.Exhaustion
           }
-        , { content = t.questions.cynicism.first
+        , { content = \t -> t.questions.cynicism.first
           , selectedAnswer = Nothing
           , section = Section.Cynicism
           }
-        , { content = t.questions.cynicism.second
+        , { content = \t -> t.questions.cynicism.second
           , selectedAnswer = Nothing
           , section = Section.Cynicism
           }
-        , { content = t.questions.depersonalization.first
+        , { content = \t -> t.questions.depersonalization.first
           , selectedAnswer = Nothing
           , section = Section.Depersonalization
           }
-        , { content = t.questions.depersonalization.second
+        , { content = \t -> t.questions.depersonalization.second
           , selectedAnswer = Nothing
           , section = Section.Depersonalization
           }
-        , { content = t.questions.selfInefficacy.first
+        , { content = \t -> t.questions.selfInefficacy.first
           , selectedAnswer = Nothing
           , section = Section.SelfInefficacy
           }
-        , { content = t.questions.selfInefficacy.second
+        , { content = \t -> t.questions.selfInefficacy.second
           , selectedAnswer = Nothing
           , section = Section.SelfInefficacy
           }
@@ -131,6 +136,9 @@ update msg model =
             else
                 { model | page = Result }
 
+        UserClickedOnSetLanguage language ->
+            { model | i18n = I18n.Base.for language }
+
 
 updateQuestion : Question -> Int -> Question
 updateQuestion question selectedAnswer =
@@ -142,7 +150,7 @@ view model =
     layout [ Background.color colors.base ] <|
         case model.page of
             Intro ->
-                viewIntro
+                viewIntro model
 
             Result ->
                 viewResult model
@@ -151,12 +159,12 @@ view model =
                 viewQuiz model
 
 
-viewIntro : Element Msg
-viewIntro =
+viewIntro : Model -> Element Msg
+viewIntro model =
     row [ centerX, centerY ]
         [ button []
             { onPress = Just UserClickedOnStartButton
-            , label = text t.buttons.start
+            , label = text model.i18n.buttons.start
             }
         ]
 
@@ -170,7 +178,7 @@ viewResult model =
                 |> Calculator.evaluateQuestions
 
         maxResult =
-            Array.length t.answers - 1
+            Array.length model.i18n.answers - 1
     in
     row
         [ width fill
@@ -189,7 +197,7 @@ viewResult model =
                 , centerX
                 ]
                 [ viewTotalResult model
-                , text <| t.formatMaxResult maxResult
+                , text <| model.i18n.formatMaxResult maxResult
                 ]
             , viewSectionResults model
             ]
@@ -206,7 +214,7 @@ viewTotalResult model =
                 |> Calculator.evaluateQuestions
     in
     total
-        |> t.formatEvaluation
+        |> model.i18n.formatEvaluation
         |> text
         |> el
             [ bold
@@ -225,8 +233,8 @@ viewSectionResults model =
                 , padding 8
                 ]
                 [ text <|
-                    t.section section
-                , el [ alignRight ] (text <| t.formatEvaluation evaluation)
+                    model.i18n.section section
+                , el [ alignRight ] (text <| model.i18n.formatEvaluation evaluation)
                 ]
             ]
 
@@ -251,10 +259,6 @@ backgroundGradient evaluation =
 
 viewQuiz : Model -> Element Msg
 viewQuiz model =
-    let
-        currentQuestion =
-            ListIterator.current model.questions
-    in
     row
         [ width fill
         , paddingEach { top = 30, bottom = 0, left = 0, right = 0 }
@@ -264,15 +268,19 @@ viewQuiz model =
             [ width fill
             , spacing 30
             ]
-            [ viewQuestion currentQuestion
+            [ viewQuestion model
             , viewActions model
             ]
         , el [ width fill ] none
         ]
 
 
-viewQuestion : Question -> Element Msg
-viewQuestion { content, selectedAnswer } =
+viewQuestion : Model -> Element Msg
+viewQuestion model =
+    let
+        { content, selectedAnswer } =
+            ListIterator.current model.questions
+    in
     textColumn [ width fill, spacing 10 ]
         (paragraph
             [ Border.widthEach { bottom = 1, top = 0, left = 0, right = 0 }
@@ -280,8 +288,8 @@ viewQuestion { content, selectedAnswer } =
             , padding 12
             , Element.height (fill |> minimum 64)
             ]
-            [ text content ]
-            :: Array.toList (Array.indexedMap (viewAnswer selectedAnswer) t.answers)
+            [ model.i18n |> content |> text ]
+            :: Array.toList (Array.indexedMap (viewAnswer selectedAnswer) model.i18n.answers)
         )
 
 
@@ -340,13 +348,13 @@ viewAnswer maybeSelectedAnswer index answer =
 viewActions : Model -> Element Msg
 viewActions model =
     row [ width fill ]
-        [ backButton
+        [ backButton model
         , nextButton model
         ]
 
 
-backButton : Element Msg
-backButton =
+backButton : Model -> Element Msg
+backButton model =
     let
         buttonStyle =
             [ alignLeft
@@ -357,7 +365,7 @@ backButton =
     in
     button buttonStyle
         { onPress = Just UserClickedOnBackButton
-        , label = text t.buttons.back
+        , label = text model.i18n.buttons.back
         }
 
 
@@ -412,10 +420,10 @@ nextButton model =
 
         label =
             if ListIterator.hasNext model.questions then
-                t.buttons.next
+                model.i18n.buttons.next
 
             else
-                t.buttons.finish
+                model.i18n.buttons.finish
     in
     case selected of
         Just _ ->
